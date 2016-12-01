@@ -1,0 +1,206 @@
+<!-- 
+ Copyright (C) 2016   Tamiko Thiel and Peter Graf
+
+ This file is part of ARVOS-APP - AR Viewer Open Source.
+ ARVOS-APP is free software.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ For more information on the ARVOS-APP, Tamiko Thiel or Peter Graf,
+ please see: http://www.arvos-app.com/.
+ -->
+ <!--#INCLUDE header.html-->
+ 
+<!--#IFNDEF ID_0-->
+
+<form method="POST" >
+  <input type="hidden" name="ACT" value="ListChannels">
+  
+  <table style="width: 100%" >
+  <tr>
+
+    <td align=left>Filters: <small>LAT</small> </td>
+    <td align=left><small>LON</small> </td>
+    <td align=left><small>Name</small> </td>
+    <td align=left><small>Author</small> </td>
+    <td align=left><small>Description</small> </td>
+    <td align=left><small>Dev-Key</small> </td>
+
+    
+  </tr>
+  <tr>
+        <td align=left><input type="text" name="FLAT" value="<?FLAT>" size="8" maxlength="10" ></td>
+        <td align=left><input type="text" name="FLON" value="<?FLON>" size="8" maxlength="11" ></td>
+        <td align=left><input type="text" name="FCHN" value="<?FCHN>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FAUT" value="<?FAUT>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FDES" value="<?FDES>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FDEV" value="<?FDEV>" size="8" maxlength="16" ></td>
+        <td align=left><small><input type="submit" name="ApplyFilters" value="Apply Filters" title="Apply the filters to the channels list" ></small> </td>   
+      
+  </tr>
+  
+  </table>
+
+</form>
+<hr>
+     
+ <p>
+ There are no channels to list.
+ 
+<!--#ENDIF ID_0-->
+
+<!--#IFDEF ID_0-->
+
+<!--#IFDEF USER_IS_LOGGED_IN-->
+
+<form method="POST" >
+  <input type="hidden" name="ACT" value="ListChannels">
+  
+  <table style="width: 100%" >
+  <tr>
+
+    <td align=left>Filters: <small>LAT</small> </td>
+    <td align=left><small>LON</small> </td>
+    <td align=left><small>Name</small> </td>
+    <td align=left><small>Author</small> </td>
+    <td align=left><small>Description</small> </td>
+    <td align=left><small>Dev-Key</small> </td>
+
+    
+  </tr>
+  <tr>
+        <td align=left><input type="text" name="FLAT" value="<?FLAT>" size="8" maxlength="10" ></td>
+        <td align=left><input type="text" name="FLON" value="<?FLON>" size="8" maxlength="11" ></td>
+        <td align=left><input type="text" name="FCHN" value="<?FCHN>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FAUT" value="<?FAUT>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FDES" value="<?FDES>" size="8" maxlength="16" ></td>
+        <td align=left><input type="text" name="FDEV" value="<?FDEV>" size="8" maxlength="16" ></td>
+        <td align=left><small><input type="submit" name="ApplyFilters" value="Apply Filters" title="Apply the filters to the channels list" ></small> </td>   
+      
+  </tr>
+  
+  </table>
+
+</form>
+<hr>
+
+<!--#ENDIF USER_IS_LOGGED_IN-->
+  
+  <table style="width: 100%" >
+  <tr>
+ 
+    <!--#IFDEF USER_IS_AUTHOR-->
+ 
+      <th align=left title="The id of the channel" >Id</th>
+    
+    <!--#ENDIF USER_IS_AUTHOR-->
+
+    <th align=left title="The name of the channel" >Name</th>
+    <th align=left title="The name of the author" >Author</th>
+    <th align=left title="The info url of the channel" >Info</th>
+    <th align=left title="View the details of the channel" >Details</th>
+    
+    <!--#IFDEF USER_IS_LOGGED_IN-->
+    
+      <th align=left title="Delete the channel" >Delete</th>
+    
+    <!--#ENDIF USER_IS_LOGGED_IN-->
+    
+    <th align=left title="The latitude of the channel" >LAT</th>
+    <th align=left title="The longitude of the channel" >LON</th>
+
+    <!--#IFDEF DIS_0-->
+    
+      <th align=left title="The distance in meters" >Dist</th>
+    
+    <!--#ENDIF DIS_0-->
+        
+  </tr>
+
+  <!--#FOR ID-->
+  
+    <tr>
+    
+    <!--#IFDEF USER_IS_AUTHOR-->
+    
+      <td align=left><small><!--?ID--></small></td>
+
+    <!--#ENDIF USER_IS_AUTHOR-->
+
+    <td align=left title="<?DES>" ><small><!--?CHN--></small></td>
+    <td align=left><small><!--?AUT--></small></td>
+    
+    <td align=left title="<?INF>" >
+    
+      <!--#IFDEF INF-->
+    
+          <a href="<?INF>"><button type="submit" 
+           ><img src="http://www.arvos-app.com/images/ic_launch_black_48px.svg" width="16" height="16" 
+           /></button></a> 
+      
+      <!--#ENDIF INF-->
+      
+    </td>
+    
+    <td align=left>
+      
+      <form method="POST" >
+        <input type="hidden" name="ID" value="<?ID>">
+        <input type="hidden" name="ACT" value="ShowChannel">
+        <button type="submit" value="Show" title="Show channel details" 
+          ><img src="http://www.arvos-app.com/images/ic_description_black_48px.svg" width="16" height="16" 
+        /></button>
+      </form>
+      
+    </td>
+
+    <!--#IFDEF USER_IS_LOGGED_IN-->
+    
+      <td align=left>
+    
+      <!--#IFDEF DELETE_ALLOWED-->
+    
+        <form method="POST" >
+          <input type="hidden" name="ID" value="<?ID>">
+          <input type="hidden" name="CHN" value="<?CHN>">
+          <input type="hidden" name="ACT" value="DeleteChannel">
+          <button type="submit" value="Delete" title="Delete channel '<?CHN>'" 
+             ><img src="http://www.arvos-app.com/images/ic_delete_forever_black_48px.svg" width="16" height="16" 
+             /></button>
+        </form>
+      
+      <!--#ENDIF DELETE_ALLOWED-->
+    
+      </td>
+      
+    <!--#ENDIF USER_IS_LOGGED_IN--> 
+       
+    <td align=left><small><!--?LAT--></small></td>
+    <td align=left><small><!--?LON--></small></td>
+
+    <!--#IFDEF DIS_0-->
+    
+      <td align=left><small><!--?DIS--></small></td>
+    
+    <!--#ENDIF DIS_0-->
+    
+    </tr>
+
+  <!--#ENDFOR ID-->
+
+</table>
+
+<!--#ENDIF ID_0-->
+
+<!--#INCLUDE footer.html-->

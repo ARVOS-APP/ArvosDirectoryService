@@ -1,0 +1,67 @@
+<!-- 
+ Copyright (C) 2016   Tamiko Thiel and Peter Graf
+
+ This file is part of ARVOS-APP - AR Viewer Open Source.
+ ARVOS-APP is free software.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ For more information on the ARVOS-APP, Tamiko Thiel or Peter Graf,
+ please see: http://www.arvos-app.com/.
+ -->
+ <!--#INCLUDE header.html-->
+ 
+ <p>
+ Please enter your author name, email address and a password in order to register with Arvos-App Server.
+
+<form method="POST" >
+  
+  <p>
+  <b>Author Name</b>:
+   
+  <br>
+  <input type="text" name="NAM" value="<?NAM>" > 
+  
+  <p>
+  <b>Email Address</b>:
+  
+  <br>
+  <input type="email" name="EML" value="<?EML>" > 
+
+  <p>
+  <b>Please Retype Your Email Address</b>:
+  
+  <br>
+  <input type="email" name="EML2" value="<?EML2>" > 
+  
+  <p>
+  <b>Please enter a new password for the site</b>:
+  
+  <br>
+  <input type="password" name="PWD" value="" >
+  
+  <p>
+  <b>Confirm password</b>:
+  
+  <br>
+  <input type="password" name="PWD2" value="" >
+    
+  <p>
+  <input type="hidden" name="CFM" value="Yes" >
+  <input type="hidden" name="ACT" value="Register" >
+  <input type="submit" value="Register" >
+    
+</form>
+
+<!--#INCLUDE footer.html-->

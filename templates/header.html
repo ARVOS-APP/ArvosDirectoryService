@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Arvos-App Server</title>
+</head>
+<body>
+<h1>
+<a href="http://www.arvos-app.com/"><img
+src="http://www.arvos-app.com/images/arvos_logo_rgb-weiss256.png" WIDTH=64></a> 
+Arvos - Augmented Reality Viewer Open Source
+</h1>
+<p>
+<hr> 
+<p>
+
+  <!--#IFDEF USER_IS_LOGGED_IN-->
+
+    <!--#IFDEF USER_IS_ADMIN--> 
+        
+      Hello <font color="red"><!--?USER_NAME--></font>&nbsp;&nbsp;
+          
+    <!--#ENDIF USER_IS_ADMIN--> 
+        
+    <!--#IFDEF USER_IS_AUTHOR-->
+        
+      <!--#IFNDEF USER_IS_ADMIN-->
+          
+        Hello <font color="green"><!--?USER_NAME--></font>&nbsp;&nbsp;
+            
+      <!--#ENDIF USER_IS_ADMIN--> 
+          
+    <!--#ENDIF USER_IS_AUTHOR-->
+        
+    <!--#IFNDEF USER_IS_AUTHOR-->
+        
+      <!--#IFNDEF USER_IS_ADMIN-->
+          
+        Hello <font color="grey"><!--?USER_NAME--></font>&nbsp;&nbsp;
+            
+      <!--#ENDIF USER_IS_ADMIN--> 
+          
+    <!--#ENDIF USER_IS_AUTHOR-->
+      
+  <!--#ENDIF USER_IS_LOGGED_IN-->
+    
+  <table >
+  <tr>
+  
+  <!--#IFDEF USER_IS_LOGGED_IN-->
+    
+    <td align=left>
+      <form method="POST" >
+        
+        <input type="hidden" name="ACT" value="Logout">
+        <input type="submit" value="Logout" title="Logout from the session" >
+  
+      </form>
+      
+    </td>
+    
+    <td align=left>
+      <form method="POST" >
+
+        <input type="hidden" name="ACT" value="ListChannels">
+        <input type="submit" name="UseFilters" value="Channels" title="List channels" >
+  
+      </form>
+    </td>
+    
+    <!--#IFDEF USER_IS_AUTHOR-->
+    
+      <td align=left>
+
+        <form method="POST" >
+          <input type="hidden" name="ACT" value="ListChannelsByAuthor">
+          <input type="submit" value="My Channels" title="List my channels" >
+        </form>
+      
+      </td>
+          
+      <td align=left>
+
+        <form method="POST" >
+          <input type="hidden" name="ACT" value="EditChannel">
+          <input type="submit" value="New Channel" title="Create a new channel" >
+        </form>
+      
+      </td>
+      
+    <!--#ENDIF USER_IS_AUTHOR-->
+       
+    <!--#IFNDEF USER_IS_ADMIN-->
+
+      <td align=left>
+
+        <form method="POST" >
+          <input type="hidden" name="ID" value="<?USER_ID>">
+          <input type="hidden" name="AUT" value="<?USER_IS_LOGGED_IN>">
+          <input type="hidden" name="ACT" value="DeleteAuthor">
+          <input type="submit" value="Delete Account" title="Completely delete your author account" >
+        </form>
+      
+      </td>
+
+    <!--#ENDIF USER_IS_ADMIN--> 
+    
+  <!--#ENDIF USER_IS_LOGGED_IN-->
+ 
+  <!--#IFDEF USER_IS_ADMIN--> 
+  
+    <!--#IFDEF USER_IS_AUTHOR-->
+    
+      <td align=left>
+        <form method="POST" >
+
+          <input type="hidden" name="ACT" value="ListAuthors">
+          <input type="submit" value="Authors" title="List all existing authors" >
+  
+        </form>
+      </td>
+    
+      <td align=left>
+        <form method="POST" >
+
+          <input type="hidden" name="ACT" value="ListRegistrations">
+          <input type="submit" value="Registrations" title="List all newly registered users needing confirmation" >
+  
+       </form>
+      </td>
+    
+      <td align=left>
+        <form method="POST" >
+
+          <input type="hidden" name="ACT" value="ListSessions">
+          <input type="submit" value="Sessions" title="List all existing sessions" >
+  
+        </form>
+      </td>
+    
+    <!--#ENDIF USER_IS_AUTHOR-->
+    
+  <!--#ENDIF USER_IS_ADMIN--> 
+   
+  <!--#IFDEF USER_IS_LOGGED_IN-->
+    
+    <td align=left>
+      <form method="POST" >
+
+        <input type="hidden" name="ACT" value="ChangePassword">
+        <input type="submit" name="ChangePassword" value="Change Password" title="Change your password" >
+  
+      </form>
+    </td>
+      
+  <!--#ENDIF USER_IS_LOGGED_IN--> 
+
+  <!--#IFNDEF USER_IS_LOGGED_IN-->
+    
+    <td align=left>
+      <form method="POST" >
+
+        Hello <font color="blue">Guest</font>&nbsp;&nbsp;
+        <input type="hidden" name="ACT" value="Login">
+        <input type="submit" name="Login" value="Log in" title="Log in if you are a registered author" >
+  
+      </form>
+    </td>
+
+    <td align=left>
+      <form method="POST" >
+
+        <input type="hidden" name="ACT" value="ListChannels">
+        <input type="submit" value="Channels" title="List channels" >
+  
+      </form>
+    </td>
+        
+    <td align=left>
+      <form method="POST" >
+
+        <input type="hidden" name="ACT" value="Register">
+        <input type="submit" value="Register" title="Register as a new author" >
+  
+      </form>
+    </td>
+    
+    <td align=left>
+      <form method="POST" >
+
+        <input type="hidden" name="ACT" value="Activate">
+        <input type="submit" value="Activate" title="Activate your author account if you received your activation code" >
+  
+      </form>
+    </td>
+    
+  <!--#ENDIF USER_IS_LOGGED_IN-->
+  
+  </tr>
+  </table>
+
+<p>
+<hr> 
+<p>
+
+<!--#IFDEF RPL-->
+
+<p>
+<font color="red">
+<!--?RPL-->
+</font>
+ 
+<!--#ENDIF RPL-->
+

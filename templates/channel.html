@@ -1,0 +1,160 @@
+<!-- 
+ Copyright (C) 2016   Tamiko Thiel and Peter Graf
+
+ This file is part of ARVOS-APP - AR Viewer Open Source.
+ ARVOS-APP is free software.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ For more information on the ARVOS-APP, Tamiko Thiel or Peter Graf,
+ please see: http://www.arvos-app.com/.
+ -->
+ <!--#INCLUDE header.html-->
+
+<!--#IFDEF EDIT_ALLOWED--> 
+  <p>
+  Please enter the data of the channel.
+ 
+<!--#ENDIF EDIT_ALLOWED--> 
+ 
+<!--#IFNDEF EDIT_ALLOWED--> 
+  <p>
+  Details of the channel.
+ 
+<!--#ENDIF EDIT_ALLOWED--> 
+  
+<form method="POST" >
+  
+  <p>
+  <b>Channel Name</b>: <small>Required, must be unique</small>
+   
+  <br>
+  <input type="text" name="CHN" value="<?CHN>" size="64" maxlength="64" > 
+  
+  <!--#IFNDEF EDIT_ALLOWED-->
+  
+    <p>
+    <b>Author Name</b>:
+   
+    <br>
+    <input type="text" name="xxx" value="<?AUT>" size="64" maxlength="64" > 
+  
+  <!--#ENDIF EDIT_ALLOWED--> 
+  
+  <!--#IFDEF USER_IS_ADMIN--> 
+  
+    <p>
+    <b>Author Name</b>:
+   
+    <br>
+    <input type="text" name="xxx" value="<?AUT>" size="64" maxlength="64" > 
+  
+  <!--#ENDIF USER_IS_ADMIN--> 
+      
+  <p>
+  <b>Description</b>: <small>Optional, 240 characters max</small>
+  
+  <br>
+  <textarea name="DES" rows="3" cols="80" maxlength="240">
+    <!--?DES-->
+  </textarea>
+
+  <!--#IFDEF EDIT_ALLOWED--> 
+  
+    <p>
+    <b>Url of Thumbnail Image</b>: <small>Optional</small>
+  
+    <br>
+    <input type="text" name="THB" value="<?THB>" size="64" maxlength="256" >
+  
+    <!--#IFDEF HAS_THB--> 
+  
+      <img src="<!--?THB-->" height="24" width="24" >
+    
+    <!--#ENDIF HAS_THB-->
+    
+  <!--#ENDIF EDIT_ALLOWED--> 
+     
+  <p>
+  <b>Url for Further Information</b>: <small>Optional</small>
+  
+  <br>
+  <input type="text" name="INF" value="<?INF>" size="64" maxlength="256" >
+  
+  <!--#IFDEF HAS_INF-->
+  
+    <a href="<?INF>">link</a> 
+  
+  <!--#ENDIF HAS_INF-->
+   
+  <p>
+  <table style="width: 100%" >
+  <tr>
+
+    <th align=left title="Required, between -80.000000 and 80.000000 degrees" >Latitude</th>
+    <th align=left title="Required, between -180.000000 and 180.000000  degrees" >Longitude</th>
+    <th align=left title="Required, between 1 and 10000 meters, the location will be deleted if the radius is invalid or empty" >Radius</th>
+    <th align=left title="Optional, between -100 and 9000 meters" >Altitude</th>
+    <th align=left><!--#IFDEF EDIT_ALLOWED--> <input type="submit" name="AddLocation" value="Add" title="Add a location" ><!--#ENDIF EDIT_ALLOWED--></th>   
+
+  </tr>
+  
+  <!--#FOR LOC-->
+    
+    <tr>
+      
+      <td align=left><input type="text" name="LAT_<?IDX>" value="<?LAT>" size="10" maxlength="10" ></td>
+      <td align=left><input type="text" name="LON_<?IDX>" value="<?LON>" size="11" maxlength="11" ></td>
+      <td align=left><input type="text" name="RAD_<?IDX>" value="<?RAD>" size="5" maxlength="5" ></td>
+      <td align=left><input type="text" name="ALT_<?IDX>" value="<?ALT>" size="4" maxlength="4" ></td>
+      
+    </tr>
+      
+  <!--#ENDFOR LOC-->
+      
+  </table> 
+  
+  <!--#FOR LOC-->
+    <input type="hidden" name="LOC_<!--?IDX-->" value="<?LOC>" >
+  <!--#ENDFOR LOC-->
+    
+  <!--#IFDEF TCR-->
+    
+    <p>
+    <b>Time of Creation</b>:
+   
+    <br>
+    <input type="text" name="yyy" value="<?TCR>" size="20" maxlength="20" > 
+  
+  <!--#ENDIF TCR-->
+  
+  <!--#IFDEF EDIT_ALLOWED--> 
+ 
+    <p>
+    <b>Developer Key</b>: <small>Optional, restricts access</small>
+  
+    <br>
+    <input type="text" name="DEV" value="<?DEV>" size="64" maxlength="64" >
+
+    <p>
+    <input type="hidden" name="ID" value="<?ID>" >
+    <input type="hidden" name="CFM" value="Yes" >
+    <input type="hidden" name="ACT" value="<?ACT>" >
+    <input type="submit" value="Save" title="Save the data" >
+  
+  <!--#ENDIF EDIT_ALLOWED-->  
+    
+</form>
+
+<!--#INCLUDE footer.html-->

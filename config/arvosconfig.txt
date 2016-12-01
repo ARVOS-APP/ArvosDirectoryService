@@ -1,0 +1,12 @@
+# Configuration file for arvos
+#
+TemplateDirectory       ../templates/
+DataBaseDirectory       ../database/
+
+# Traces are only written if the file exists
+#
+TraceFilePath           /tmp/arvosTrace.txt
+
+# Names of administrators, comma separated
+#
+AdministratorNames     peter, p

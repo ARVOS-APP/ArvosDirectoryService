@@ -1,0 +1,98 @@
+<!-- 
+ Copyright (C) 2016   Tamiko Thiel and Peter Graf
+
+ This file is part of ARVOS-APP - AR Viewer Open Source.
+ ARVOS-APP is free software.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ For more information on the ARVOS-APP, Tamiko Thiel or Peter Graf,
+ please see: http://www.arvos-app.com/.
+ -->
+ <!--#INCLUDE header.html-->
+ 
+<!--#IFNDEF ID_0-->
+     
+ <p>
+ There are no new registered authors to list.
+
+<!--#ENDIF ID_0-->
+
+<!--#IFDEF ID_0-->
+  <h2>List of Registered Authors that are not Activated</h2>
+  
+  <table style="width: 100%" >
+  <tr>
+  
+    <th align=left>ID</th>
+    <th align=left>Name</th>
+    <th align=left>Email</th>
+    <th align=left>Delete</th>
+    <th align=left>Confirm</th>
+    <th align=left>Confirmed At</th>
+    
+  </tr>
+
+  <!--#FOR ID-->
+  
+    <tr>
+    <td align=left><small><!--?ID--></small></td>
+    <td align=left><small><!--?NAM--></small></td>
+    <td align=left><small><!--?EML--></small></td>
+    
+    <td align=left>
+    
+    <!--#IFDEF USER_IS_ADMIN--> 
+    
+      <form method="POST" >
+        <input type="hidden" name="ID" value="<?ID>">
+        <input type="hidden" name="AUT" value="<?NAM>">
+        <input type="hidden" name="ACT" value="DeleteAuthor">
+        <button type="submit" value="Delete" title="Delete author '<?NAM>'" 
+           ><img src="http://www.arvos-app.com/images/ic_delete_forever_black_48px.svg" width="16" height="16" 
+           /></button>
+      </form>
+      
+    <!--#ENDIF USER_IS_ADMIN--> 
+        
+    </td>
+ 
+    <td align=left>
+    
+    <!--#IFDEF USER_IS_ADMIN--> 
+    
+      <form method="POST" >
+        <input type="hidden" name="ID" value="<?ID>">
+        <input type="hidden" name="NAM" value="<?NAM>">
+        <input type="hidden" name="ACT" value="ConfirmAuthor">
+        <button type="submit" value="Confirm" title="Confirm the registration of the author '<?NAM>'"
+          ><img src="http://www.arvos-app.com/images/ic_thumb_up_black_48px.svg" width="16" height="16"  
+          /></button>
+      </form>
+      
+    <!--#ENDIF USER_IS_ADMIN--> 
+        
+    </td>
+    
+    <td align=left><small><!--?TCF--></small></td> 
+
+    </tr>
+
+  <!--#ENDFOR ID-->
+
+</table>
+
+<!--#ENDIF ID_0-->
+
+<!--#INCLUDE footer.html-->

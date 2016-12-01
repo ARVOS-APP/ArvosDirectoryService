@@ -23,18 +23,15 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avCgi.c,v $
- Revision 1.3  2016/12/01 20:59:09  peter
- Cleanup of gpl version 3 license
-
- Revision 1.2  2016/11/28 19:54:16  peter
- Initial
+ Revision 1.4  2016/12/01 22:25:53  peter
+ Fixed a typo.
 
  */
 
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avCgi_c_id = "$Id: avCgi.c,v 1.3 2016/12/01 20:59:09 peter Exp $";
+char * avCgi_c_id = "$Id: avCgi.c,v 1.4 2016/12/01 22:25:53 peter Exp $";
 
 #ifdef WIN32
 
@@ -553,7 +550,7 @@ char * avSprintf(const char * format, ...)
 }
 
 /**
- * Tests whetther a NULL terminated string array contains a string
+ * Tests whether a NULL terminated string array contains a string
  */
 int avStrArrayContains(char ** array, char * string)
 {

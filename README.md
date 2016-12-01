@@ -7,3 +7,5 @@ The service is implemented as a CGI program,
 see https://en.wikipedia.org/wiki/Common_Gateway_Interface, 
 it uses SQLite, see https://sqlite.org, as database.
 
+See https://github.com/ARVOS-APP/ARVOS/wiki/ARVOS-Directory-Service for what is implemented in the service.
+

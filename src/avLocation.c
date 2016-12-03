@@ -23,15 +23,15 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avLocation.c,v $
- Revision 1.1  2016/11/28 19:51:37  peter
- Initial
+ Revision 1.2  2016/12/03 00:03:54  peter
+ Cleanup after tests
 
  */
 
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avLocation_c_id = "$Id: avLocation.c,v 1.1 2016/11/28 19:51:37 peter Exp $";
+char * avLocation_c_id = "$Id: avLocation.c,v 1.2 2016/12/03 00:03:54 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>
@@ -145,7 +145,7 @@ char * avGetAltitude(char * alt, int * value)
 
 	if (*ptr != '-' && *ptr != '+' && !isdigit(*ptr))
 	{
-		return "The altitude must be an integer value between 0 and 10000.";
+		return avSprintf("Cannot parse altitude from '%s'.", ptr);
 	}
 
 	errno = 0;

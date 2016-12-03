@@ -23,15 +23,15 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avCgi.c,v $
- Revision 1.4  2016/12/01 22:25:53  peter
- Fixed a typo.
+ Revision 1.5  2016/12/03 00:03:54  peter
+ Cleanup after tests
 
  */
 
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avCgi_c_id = "$Id: avCgi.c,v 1.4 2016/12/01 22:25:53 peter Exp $";
+char * avCgi_c_id = "$Id: avCgi.c,v 1.5 2016/12/03 00:03:54 peter Exp $";
 
 #ifdef WIN32
 
@@ -362,8 +362,7 @@ void avTrace(const char * format, ...)
  */
 FILE * avFopen(char * filePath, char * openType)
 {
-	char * tag = "avFopen";
-
+	static char * tag = "avFopen";
 	FILE * stream;
 
 #ifdef WIN32
@@ -647,7 +646,7 @@ int avStrIsNullOrWhiteSpace(char * string)
 
 char * avRangeDup(char * start, char * end)
 {
-	char * tag = "avRangedup";
+	static char * tag = "avRangedup";
 
 	start = avTrimStart(start);
 	int length = end - start;
@@ -694,44 +693,14 @@ int avStrCmp(char * s1, char * s2)
 }
 
 /**
- * Un-escape duplicate characters from a string, i.e. un-escape SQL query, e.g. turn '' into ', works in place.
- */
-char * xxavStrUnescapeDuplicates(char * string, int c)
-{
-	char * to = NULL;
-	char * from;
-
-	for (from = string; *from; from++)
-	{
-		if (to)
-		{
-			*to++ = *from;
-		}
-		if (*from == c && *(from + 1) == c)
-		{
-			from++;
-			if (!to)
-			{
-				to = from;
-			}
-		}
-	}
-
-	if (to)
-	{
-		*to = '\0';
-	}
-	return string;
-}
-
-/**
  * Like strdup.
  *
  * If an error occurs, the program exits with an error message.
  */
 char * avStrDup(char * string)
 {
-	char * tag = "avStrDup";
+	static char * tag = "avStrDup";
+
 	if (!string)
 	{
 		string = "";
@@ -751,8 +720,7 @@ char * avStrDup(char * string)
  */
 char * avStrCat(char * s1, char * s2)
 {
-	char * tag = "avStrCat";
-
+	static char * tag = "avStrCat";
 	char * result = NULL;
 	size_t len1 = 0;
 	size_t len2 = 0;
@@ -785,45 +753,6 @@ char * avStrCat(char * s1, char * s2)
 }
 
 /**
- * Like strcat, but the memory for the target is allocated.
- *
- * If an error occurs, the program exits with an error message.
- *
- * The pointer array strings must be NULL terminated.
- */
-char * avStrNCat(char ** strings)
-{
-	char * tag = "avStrNCat";
-
-	PblStringBuilder * stringBuilder = pblStringBuilderNew();
-	if (!stringBuilder)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	for (int i = 0; i < AV_MAX_SIZE_OF_BUFFER_ON_STACK; i++)
-	{
-		char * ptr = strings[i];
-		if ( NULL == ptr)
-		{
-			break;
-		}
-		if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t) -1))
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-	}
-
-	char * result = pblStringBuilderToString(stringBuilder);
-	if (!result)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	pblStringBuilderFree(stringBuilder);
-	return result;
-}
-
-/**
  * Return a malloced time string.
  *
  * If an error occurs, the program exits with an error message.
@@ -835,56 +764,6 @@ char * avTimeToStr(time_t t)
 
 	return avSprintf("%02d.%02d.%02d %02d:%02d:%02d", (tm->tm_year + 1900) % 100, tm->tm_mon + 1, tm->tm_mday,
 			tm->tm_hour, tm->tm_min, tm->tm_sec);
-}
-
-/**
- * Convert a time string to a variable of type time_t.
- *
- * If an error occurs, the program exits with an error message.
- */
-time_t avStrToTime(char * string)
-{
-	if (!string || !*string)
-	{
-		return (0);
-	}
-
-	char timeString[AV_DATE_LEN + 1];
-
-	avStrNCpy(timeString, string, sizeof(timeString));
-
-	unsigned long top = 0x7fffffff;
-	unsigned long bottom = 0x0;
-	unsigned long middle = 0x40000000;
-
-	for (;;)
-	{
-		if ((bottom + 1) >= top)
-		{
-			break;
-		}
-
-		char * ptr = avTimeToStr((time_t) middle);
-		int rc = strcmp(ptr, timeString);
-		PBL_FREE(ptr);
-
-		if (rc == 0)
-		{
-			break;
-		}
-
-		if (rc < 0)
-		{
-			bottom = middle;
-		}
-		else
-		{
-			top = middle;
-		}
-
-		middle = (bottom + top) / 2;
-	}
-	return (middle);
 }
 
 /**
@@ -937,8 +816,7 @@ int avSplit(char * string, char * splitString, size_t size, char * results[])
  */
 PblList * avSplitToList(char * string, char * splitString)
 {
-	char * tag = "avSplitToList";
-
+	static char * tag = "avSplitToList";
 	PblList * list = pblListNewArrayList();
 	if (!list)
 	{
@@ -966,8 +844,7 @@ PblList * avSplitToList(char * string, char * splitString)
  */
 char * avBufferToHexString(unsigned char * buffer, size_t length)
 {
-	char * tag = "avBufferToHexString";
-
+	static char * tag = "avBufferToHexString";
 	char * hexString = pbl_malloc(tag, 2 * length + 1);
 	if (!hexString)
 	{
@@ -1021,7 +898,7 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
  */
 unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 {
-	char * tag = "avRandomBytes";
+	static char * tag = "avRandomBytes";
 
 #ifdef WIN32
 
@@ -1277,7 +1154,7 @@ void avSha256_digest(avSha256_ctx_t* ctx, unsigned char* digest)
  */
 unsigned char * avSha256(unsigned char * buffer, size_t length)
 {
-	char * tag = "avSha256";
+	static char * tag = "avSha256";
 
 	unsigned char * digest = pbl_malloc(tag, AV_MAX_DIGEST_LEN);
 	if (!digest)
@@ -1380,7 +1257,7 @@ static char * avDecode(char * source)
  */
 PblMap * avFileToMap(PblMap * map, char * filePath)
 {
-	char * tag = "avFileToMap";
+	static char * tag = "avFileToMap";
 
 	if (!map)
 	{
@@ -1438,7 +1315,7 @@ PblMap * avFileToMap(PblMap * map, char * filePath)
 static PblMap * queryMap = NULL;
 static void avSetQueryValue(char * key, char * value)
 {
-	char * tag = "avSetQueryValue";
+	static char * tag = "avSetQueryValue";
 
 	if (!queryMap)
 	{
@@ -1468,7 +1345,7 @@ static void avSetQueryValue(char * key, char * value)
  */
 char * avQueryValueForIteration(char * key, int iteration)
 {
-	char * tag = "avQueryValueForIteration";
+	static char * tag = "avQueryValueForIteration";
 
 	if (!queryMap)
 	{
@@ -1531,7 +1408,7 @@ void avSetValueForIteration(char * key, char * value, int iteration)
  */
 void avSetValueToMap(char * key, char * value, int iteration, PblMap * map)
 {
-	char * tag = "avSetValueToMap";
+	static char * tag = "avSetValueToMap";
 
 	if (!key || !*key)
 	{
@@ -1679,7 +1556,7 @@ char * avValueForIteration(char * key, int iteration)
  */
 char * avValueFromMap(char * key, int iteration, PblMap * map)
 {
-	char * tag = "avValueFromMap";
+	static char * tag = "avValueFromMap";
 
 	if (*key && *key == *avDurationKey && !strcmp(avDurationKey, key))
 	{
@@ -1722,8 +1599,7 @@ char * avValueFromMap(char * key, int iteration, PblMap * map)
  */
 void avParseQuery(int argc, char * argv[])
 {
-	char * tag = "avParseQuery";
-
+	static char * tag = "avParseQuery";
 	char * ptr = NULL;
 	char * queryString = NULL;
 
@@ -1834,8 +1710,7 @@ void avParseQuery(int argc, char * argv[])
 
 static char * avReplaceLowerThan(char * string, char *ptr2)
 {
-	char * tag = "avReplaceLowerThan";
-
+	static char * tag = "avReplaceLowerThan";
 	char * ptr = string;
 
 	PblStringBuilder * stringBuilder = pblStringBuilderNew();
@@ -2164,8 +2039,7 @@ static char * avPrintStr(char * string, FILE * outStream, int iteration)
 
 static char * avHandleFor(PblList * list, char * line, char * forKey)
 {
-	char * tag = "avHandleFor";
-
+	static char * tag = "avHandleFor";
 	char * ptr = strstr(line, "<!--#");
 	if (!ptr)
 	{
@@ -2218,8 +2092,7 @@ static char * avHandleFor(PblList * list, char * line, char * forKey)
 
 static PblList * avReadFor(char * inputLine, char * forKey, FILE * stream)
 {
-	char * tag = "avReadFor";
-
+	static char * tag = "avReadFor";
 	char line[AV_MAX_LINE_LENGTH + 1];
 
 	PblList * list = pblListNewLinkedList();
@@ -2248,8 +2121,7 @@ static PblList * avReadFor(char * inputLine, char * forKey, FILE * stream)
 
 static void avPrintFor(PblList * lines, char * forKey, FILE * outStream)
 {
-	char * tag = "avPrintFor";
-
+	static char * tag = "avPrintFor";
 	int hasNext;
 
 	for (unsigned long iteration = 0; 1; iteration++)
@@ -2306,7 +2178,7 @@ static void avPrintFor(PblList * lines, char * forKey, FILE * outStream)
  */
 void avPrint(char * directory, char * fileName, char * contentType)
 {
-	char * tag = "avPrint";
+	static char * tag = "avPrint";
 
 	AV_TRACE("Directory=%s", directory);
 	AV_TRACE("FileName=%s", fileName);
@@ -2455,7 +2327,7 @@ PblMap * avDataValues(char * buffer)
  */
 PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 {
-	char * tag = "avUpdateData";
+	static char * tag = "avUpdateData";
 
 	if (!map)
 	{
@@ -2473,6 +2345,10 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 				int n = atoi(value);
 				int length = strlen(value) + 1;
 				value = pbl_malloc0(tag, length + 2);
+				if (!value)
+				{
+					avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				}
 				snprintf(value, length + 1, "%d", ++n);
 				if (pblMapAddStrStr(map, keys[i], value) < 0)
 				{
@@ -2516,7 +2392,7 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
  */
 char * avMapToDataStr(PblMap * map)
 {
-	char * tag = "avMapToDataStr";
+	static char * tag = "avMapToDataStr";
 
 	PblStringBuilder * stringBuilder = pblMapStrStrToStringBuilder(map, "\t", "=");
 	if (!stringBuilder)
@@ -2543,7 +2419,7 @@ char * avMapToDataStr(PblMap * map)
  */
 PblMap * avDataStrToMap(PblMap * map, char * buffer)
 {
-	char * tag = "avDataStrToMap";
+	static char * tag = "avDataStrToMap";
 
 	if (!map)
 	{

@@ -25,8 +25,8 @@
  please see: http://www.arvos-app.com/.
 
  $Log: arvosCgi.h,v $
- Revision 1.1  2016/11/28 19:51:37  peter
- Initial
+ Revision 1.2  2016/12/03 00:03:54  peter
+ Cleanup after tests
 
  */
 
@@ -93,12 +93,9 @@ extern char * avTrim(char * string);
 extern int avStrIsNullOrWhiteSpace(char * string);
 extern char * avRangeDup(char * start, char * end);
 extern char * avStrDup(char * string);
-extern char * xxavStrUnescapeDuplicates(char * string, int c);
 extern int avStrEquals(char * s1, char * s2);
 extern int avStrCmp(char * s1, char * s2);
 extern char * avStrCat(char * s1, char * s2);
-extern char * avStrNCat(char ** strings);
-extern time_t avStrToTime(char * string);
 extern char * avTimeToStr(time_t t);
 
 extern int avSplit(char * string, char * splitString, size_t size, char * result[]);

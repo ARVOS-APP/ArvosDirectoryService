@@ -23,15 +23,15 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avBase.c,v $
- Revision 1.2  2016/11/28 19:54:16  peter
- Initial
+ Revision 1.3  2016/12/03 00:03:54  peter
+ Cleanup after tests
 
  */
 
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avBase_c_id = "$Id: avBase.c,v 1.2 2016/11/28 19:54:16 peter Exp $";
+char * avBase_c_id = "$Id: avBase.c,v 1.3 2016/12/03 00:03:54 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>
@@ -86,6 +86,8 @@ char * avNowStr()
  */
 char * avRandomCode(size_t length)
 {
+	static char * tag = "avRandomCode";
+
 	if (avNumberOfCodeChars < 0)
 	{
 		avNumberOfCodeChars = strlen(avCodeChars);
@@ -94,7 +96,7 @@ char * avRandomCode(size_t length)
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", length, pbl_errno, pbl_errstr);
+		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 
@@ -111,10 +113,11 @@ char * avRandomCode(size_t length)
  */
 char * avRandomIntCode(size_t length)
 {
+	static char * tag = "avRandomIntCode";
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", length, pbl_errno, pbl_errstr);
+		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 
@@ -131,10 +134,11 @@ char * avRandomIntCode(size_t length)
  */
 char * avRandomHexCode(size_t length)
 {
+	static char * tag = "avRandomHexCode";
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", length, pbl_errno, pbl_errstr);
+		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 

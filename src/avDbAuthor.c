@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avDbAuthor.c,v $
+ Revision 1.3  2016/12/13 21:47:21  peter
+ Commit after Win32 port
+
  Revision 1.2  2016/11/28 19:54:16  peter
  Initial
 
@@ -31,7 +34,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avDbAuthor_c_id = "$Id: avDbAuthor.c,v 1.2 2016/11/28 19:54:16 peter Exp $";
+char * avDbAuthor_c_id = "$Id: avDbAuthor.c,v 1.3 2016/12/13 21:47:21 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

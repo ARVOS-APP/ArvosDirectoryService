@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avDirectoryService.c,v $
+ Revision 1.3  2016/12/13 21:47:21  peter
+ Commit after Win32 port
+
  Revision 1.2  2016/12/01 20:59:09  peter
  Cleanup of gpl version 3 license
 
@@ -34,7 +37,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.2 2016/12/01 20:59:09 peter Exp $";
+char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.3 2016/12/13 21:47:21 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

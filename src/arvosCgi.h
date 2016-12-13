@@ -25,6 +25,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: arvosCgi.h,v $
+ Revision 1.3  2016/12/13 21:47:21  peter
+ Commit after Win32 port
+
  Revision 1.2  2016/12/03 00:03:54  peter
  Cleanup after tests
 

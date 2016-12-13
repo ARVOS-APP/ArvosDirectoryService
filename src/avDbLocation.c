@@ -42,7 +42,6 @@ char * avDbLocation_c_id = "$Id: avDbLocation.c,v 1.2 2016/11/28 19:54:16 peter 
 
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "arvos.h"
 

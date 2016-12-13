@@ -42,7 +42,6 @@ char * avDbSession_c_id = "$Id: avDbSession.c,v 1.1 2016/11/28 19:51:37 peter Ex
 
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "arvos.h"
 

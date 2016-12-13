@@ -42,7 +42,6 @@ char * avChannel_c_id = "$Id: avChannel.c,v 1.2 2016/11/28 19:54:16 peter Exp $"
 
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "arvos.h"
 

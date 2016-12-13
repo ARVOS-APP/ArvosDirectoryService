@@ -42,7 +42,6 @@ char * avLocation_c_id = "$Id: avLocation.c,v 1.2 2016/12/03 00:03:54 peter Exp 
 
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "arvos.h"
 

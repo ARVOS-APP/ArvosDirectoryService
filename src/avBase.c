@@ -45,7 +45,6 @@ char * avBase_c_id = "$Id: avBase.c,v 1.3 2016/12/03 00:03:54 peter Exp $";
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 #include "arvos.h"
 
@@ -100,7 +99,7 @@ char * avRandomCode(size_t length)
 	}
 	avRandomBytes(buffer, length);
 
-	for (int i = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		buffer[i] = avCodeChars[buffer[i] % avNumberOfCodeChars];
 	}
@@ -121,7 +120,7 @@ char * avRandomIntCode(size_t length)
 	}
 	avRandomBytes(buffer, length);
 
-	for (int i = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		buffer[i] = '0' + (buffer[i] % 10);
 	}
@@ -142,7 +141,7 @@ char * avRandomHexCode(size_t length)
 	}
 	avRandomBytes(buffer, length);
 
-	for (int i = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		int c = buffer[i] % 16;
 		if (c < 10)

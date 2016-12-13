@@ -39,7 +39,15 @@ extern "C"
 #include <errno.h>
 #include <ctype.h>
 #include <time.h>
+
+#ifdef _WIN32
+
+#include <winsock2.h>
+
+#else
 #include <sys/time.h>
+#include <unistd.h>
+#endif
 
 #include "pbl.h"
 #include "sqlite3.h"

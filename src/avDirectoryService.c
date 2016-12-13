@@ -45,7 +45,6 @@ char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.2 2016/12/01 20:
 
 #include <assert.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "arvos.h"
 

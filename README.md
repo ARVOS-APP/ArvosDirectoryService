@@ -1,4 +1,4 @@
-#<A href="http://github.com/ARVOS-APP/"><img src="http://arvos-app.com/images/arvos_logo_rgb-weiss32.png" width=32></img></a>  ArvosDirectoryService
+<A href="http://github.com/ARVOS-APP/"><img src="http://arvos-app.com/images/arvos_logo_rgb-weiss32.png" width=32></img></a>  ArvosDirectoryService
 Arvos Directory Service implementation as C-language CGI program.
 
 An implementation of the Arvos Directory Service written in C.

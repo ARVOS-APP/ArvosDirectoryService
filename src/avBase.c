@@ -80,7 +80,7 @@ static char * avCodeChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO
 char * avNowStr()
 {
 	time_t now = time(NULL);
-	return avTimeToStr(now);
+	return pblCgiStrFromTime(now);
 }
 
 /**
@@ -98,7 +98,7 @@ char * avRandomCode(size_t length)
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 
@@ -119,7 +119,7 @@ char * avRandomIntCode(size_t length)
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 
@@ -140,7 +140,7 @@ char * avRandomHexCode(size_t length)
 	unsigned char * buffer = pbl_malloc(NULL, length + 1);
 	if (!buffer)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avRandomBytes(buffer, length);
 
@@ -167,11 +167,11 @@ char * avConfigValue(char * key, char * defaultValue)
 {
 	if (!avConfigMap)
 	{
-		avExitOnError("The configuration file was never read!\n");
+		pblCgiExitOnError("The configuration file was never read!\n");
 	}
 	if (!key || !*key)
 	{
-		avExitOnError("Empty key not allowed!\n");
+		pblCgiExitOnError("Empty key not allowed!\n");
 	}
 	char * value = pblMapGetStr(avConfigMap, key);
 	if (!value)
@@ -186,7 +186,7 @@ char * avConfigValue(char * key, char * defaultValue)
  */
 void avSetAdministratorNames()
 {
-	avAdministratorNames = avSplitToList(avConfigValue(AV_ADMINISTRATOR_NAMES, ""), ",");
+	avAdministratorNames = pblCgiStrSplitToList(avConfigValue(AV_ADMINISTRATOR_NAMES, ""), ",");
 	pblListSetCompareFunction(avAdministratorNames, pblCollectionStringCompareFunction);
 }
 
@@ -197,14 +197,14 @@ static int avCheckPassword(char * password, char * hashedPassword)
 		return 0;
 	}
 
-	char * salt = avStrDup(hashedPassword);
+	char * salt = pblCgiStrDup(hashedPassword);
 	salt[64] = '\0';
 
-	char * saltedPassword = avStrCat(salt, password);
+	char * saltedPassword = pblCgiStrCat(salt, password);
 	char * hash = avSha256AsHexString((unsigned char*) saltedPassword, strlen(saltedPassword));
-	char * saltedHash = avStrCat(salt, hash);
+	char * saltedHash = pblCgiStrCat(salt, hash);
 
-	int result = avStrEquals(hashedPassword, saltedHash);
+	int result = pblCgiStrEquals(hashedPassword, saltedHash);
 
 	PBL_FREE(salt);
 	PBL_FREE(saltedPassword);
@@ -223,11 +223,11 @@ char * avHashPassword(char * password)
 {
 	unsigned char buffer[32];
 	avRandomBytes(buffer, 32);
-	char * salt = avBufferToHexString(buffer, 32);
+	char * salt = pblCgiStrToHexFromBuffer(buffer, 32);
 
-	char * saltedPassword = avStrCat(salt, password);
+	char * saltedPassword = pblCgiStrCat(salt, password);
 	char * hash = avSha256AsHexString((unsigned char*) saltedPassword, strlen(saltedPassword));
-	char * saltedHash = avStrCat(salt, hash);
+	char * saltedHash = pblCgiStrCat(salt, hash);
 
 	PBL_FREE(salt);
 	PBL_FREE(saltedPassword);
@@ -244,8 +244,8 @@ char * avAuthorCreate(char * name, char * email, char * password)
 	PblMap * map = avDbAuthorGetByName(name);
 	if (map)
 	{
-		avMapFree(map);
-		return avSprintf("An author with the name '%s' already exists, please use a different name to register.", name);
+		pblCgiMapFree(map);
+		return pblCgiSprintf("An author with the name '%s' already exists, please use a different name to register.", name);
 	}
 
 	char * authorId = avDbAuthorInsert(name, email, password);
@@ -254,31 +254,31 @@ char * avAuthorCreate(char * name, char * email, char * password)
 
 static void avLoginUser(char* name, char* authorId, char* timeActivated, char* email, char * sessionId, char* cookie)
 {
-	avUserIsLoggedIn = avStrDup(name);
-	avUserId = avStrDup(authorId);
-	avSessionId = avStrDup(sessionId);
-	avSetValue(AV_KEY_USER_IS_LOGGED_IN, avUserIsLoggedIn);
-	if (timeActivated && *timeActivated && !avStrEquals(AV_NOT_ACTIVATED, timeActivated))
+	avUserIsLoggedIn = pblCgiStrDup(name);
+	avUserId = pblCgiStrDup(authorId);
+	avSessionId = pblCgiStrDup(sessionId);
+	pblCgiSetValue(AV_KEY_USER_IS_LOGGED_IN, avUserIsLoggedIn);
+	if (timeActivated && *timeActivated && !pblCgiStrEquals(AV_NOT_ACTIVATED, timeActivated))
 	{
 		avUserIsAuthor = avUserIsLoggedIn;
-		avSetValue(AV_KEY_USER_IS_AUTHOR, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_USER_IS_AUTHOR, avUserIsLoggedIn);
 	}
 	if (avAdministratorNames && pblListContains(avAdministratorNames, name))
 	{
 		if (!avUserIsAuthor)
 		{
 			avUserIsAuthor = avUserIsLoggedIn;
-			avSetValue(AV_KEY_USER_IS_AUTHOR, avUserIsLoggedIn);
+			pblCgiSetValue(AV_KEY_USER_IS_AUTHOR, avUserIsLoggedIn);
 		}
 		avUserIsAdministrator = avUserIsLoggedIn;
-		avSetValue(AV_KEY_USER_IS_ADMIN, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_USER_IS_ADMIN, avUserIsLoggedIn);
 	}
-	avSetValue(AV_KEY_USER_ID, avUserId);
-	avSetValue(AV_KEY_USER_NAME, avUserIsLoggedIn);
-	avSetValue(AV_KEY_USER_EMAIL, email);
-	avSetValue(AV_COOKIE, cookie);
-	avSetValue(AV_COOKIE_PATH, "/");
-	avSetValue(AV_COOKIE_DOMAIN, avGetEnv("SERVER_NAME"));
+	pblCgiSetValue(AV_KEY_USER_ID, avUserId);
+	pblCgiSetValue(AV_KEY_USER_NAME, avUserIsLoggedIn);
+	pblCgiSetValue(AV_KEY_USER_EMAIL, email);
+	pblCgiSetValue(AV_COOKIE, cookie);
+	pblCgiSetValue(AV_COOKIE_PATH, "/");
+	pblCgiSetValue(AV_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
 }
 
 /**
@@ -370,13 +370,13 @@ void avCheckCookie(char * cookie)
 	}
 	char * timeActivated = pblMapGetStr(map, AV_KEY_TIME_ACTIVATED);
 
-	avSetValue(AV_KEY_FILTER_LAT, pblMapGetStr(map, AV_KEY_FILTER_LAT));
-	avSetValue(AV_KEY_FILTER_LON, pblMapGetStr(map, AV_KEY_FILTER_LON));
-	avSetValue(AV_KEY_FILTER_CHANNEL, pblMapGetStr(map, AV_KEY_FILTER_CHANNEL));
-	avSetValue(AV_KEY_FILTER_AUTHOR, pblMapGetStr(map, AV_KEY_FILTER_AUTHOR));
-	avSetValue(AV_KEY_FILTER_DESCRIPTION, pblMapGetStr(map, AV_KEY_FILTER_DESCRIPTION));
-	avSetValue(AV_KEY_FILTER_EMAIL, pblMapGetStr(map, AV_KEY_FILTER_EMAIL));
-	avSetValue(AV_KEY_FILTER_DEVELOPER_KEY, pblMapGetStr(map, AV_KEY_FILTER_DEVELOPER_KEY));
+	pblCgiSetValue(AV_KEY_FILTER_LAT, pblMapGetStr(map, AV_KEY_FILTER_LAT));
+	pblCgiSetValue(AV_KEY_FILTER_LON, pblMapGetStr(map, AV_KEY_FILTER_LON));
+	pblCgiSetValue(AV_KEY_FILTER_CHANNEL, pblMapGetStr(map, AV_KEY_FILTER_CHANNEL));
+	pblCgiSetValue(AV_KEY_FILTER_AUTHOR, pblMapGetStr(map, AV_KEY_FILTER_AUTHOR));
+	pblCgiSetValue(AV_KEY_FILTER_DESCRIPTION, pblMapGetStr(map, AV_KEY_FILTER_DESCRIPTION));
+	pblCgiSetValue(AV_KEY_FILTER_EMAIL, pblMapGetStr(map, AV_KEY_FILTER_EMAIL));
+	pblCgiSetValue(AV_KEY_FILTER_DEVELOPER_KEY, pblMapGetStr(map, AV_KEY_FILTER_DEVELOPER_KEY));
 
 	avLoginUser(name, authorId, timeActivated, email, sessionId, cookie);
 
@@ -385,7 +385,7 @@ void avCheckCookie(char * cookie)
 	avDbSessionUpdateColumn(AV_KEY_ID, pblMapGetStr(map, AV_KEY_ID), AV_KEY_TIME_LAST_ACCESS, nowTimeStr);
 
 	PBL_FREE(nowTimeStr);
-	avMapFree(map);
+	pblCgiMapFree(map);
 }
 
 /**
@@ -407,7 +407,7 @@ char * avCheckNameAndPassword(char * name, char * password)
 		return "Login failed.";
 	}
 
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return NULL;
 }
 
@@ -435,13 +435,13 @@ char * avCheckNameAndPasswordAndLogin(char * name, char * password)
 	char * timeActivated = pblMapGetStr(map, AV_KEY_TIME_ACTIVATED);
 
 	char * authorKeyValues[] = { AV_KEY_COUNT, AV_KEY_TIME_LAST_ACCESS, NULL };
-	char * authorDataValues[] = { avValueIncrement, avNowStr(), NULL };
+	char * authorDataValues[] = { pblCgiValueIncrement, avNowStr(), NULL };
 
 	avDbAuthorUpdateValues(AV_KEY_ID, id, authorKeyValues, authorDataValues, NULL);
 
 	char * ptr = avSessionCreate(id, name, email, timeActivated);
 
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return ptr;
 }
 
@@ -461,11 +461,11 @@ int avMapStrToValues(void * context, int index, void * element)
 
 	if (entry->valueLength > 1)
 	{
-		avSetValueForIteration(pblMapEntryKey(entry), pblMapEntryValue(entry), *iteration);
+		pblCgiSetValueForIteration(pblMapEntryKey(entry), pblMapEntryValue(entry), *iteration);
 	}
 	else
 	{
-		avUnSetValueForIteration(pblMapEntryKey(entry), *iteration);
+		pblCgiUnSetValueForIteration(pblMapEntryKey(entry), *iteration);
 	}
 	return 0;
 }
@@ -479,6 +479,6 @@ void avPrintTemplate(char * directory, char * fileName, char * contentType)
 	{
 		sqlite3_close(avSqliteDb);
 	}
-	avPrint(directory, fileName, contentType);
+	pblCgiPrint(directory, fileName, contentType);
 	exit(0);
 }

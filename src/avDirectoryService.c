@@ -62,7 +62,7 @@ static int actionFillDatabase()
 	{
 		authors[i] = avRandomCode(10);
 
-		if (avAuthorCreate(authors[i], avSprintf("%s@%s.com", avRandomCode(8), avRandomCode(7)), "11111111"))
+		if (avAuthorCreate(authors[i], pblCgiSprintf("%s@%s.com", avRandomCode(8), avRandomCode(7)), "11111111"))
 		{
 			i--;
 			continue;
@@ -84,8 +84,8 @@ static int actionFillDatabase()
 
 	for (int i = 0; i < 0x11000; i++)
 	{
-		avLocationSave("", avSprintf("%d", rand() % 10000), avSprintf("48.%s", avRandomIntCode(6)),
-				avSprintf("11.%s", avRandomIntCode(6)), "10000", "100");
+		avLocationSave("", pblCgiSprintf("%d", rand() % 10000), pblCgiSprintf("48.%s", avRandomIntCode(6)),
+				pblCgiSprintf("11.%s", avRandomIntCode(6)), "10000", "100");
 	}
 
 	avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
@@ -96,7 +96,7 @@ static int actionLogout()
 {
 	if (avUserIsLoggedIn)
 	{
-		char * cookie = avValue(AV_COOKIE);
+		char * cookie = pblCgiValue(AV_COOKIE);
 		if (cookie && *cookie)
 		{
 			avSessionDeleteByCookie(cookie);
@@ -108,10 +108,10 @@ static int actionLogout()
 	avUserId = NULL;
 	avSessionId = NULL;
 
-	avClearValues();
-	avSetValue(AV_COOKIE, "X");
-	avSetValue(AV_COOKIE_PATH, "/");
-	avSetValue(AV_COOKIE_DOMAIN, avGetEnv("SERVER_NAME"));
+	pblCgiClearValues();
+	pblCgiSetValue(AV_COOKIE, "X");
+	pblCgiSetValue(AV_COOKIE_PATH, "/");
+	pblCgiSetValue(AV_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
 
 	avPrintTemplate(avTemplateDirectory, "login.html", "text/html");
 
@@ -120,27 +120,27 @@ static int actionLogout()
 
 static void actionRegister()
 {
-	char * name = avQueryValue(AV_KEY_NAME);
-	char * email = avQueryValue(AV_KEY_EMAIL);
-	char * email2 = avQueryValue(AV_KEY_EMAIL2);
-	char * password = avQueryValue(AV_KEY_PASSWORD);
-	char * password2 = avQueryValue(AV_KEY_PASSWORD2);
+	char * name = pblCgiQueryValue(AV_KEY_NAME);
+	char * email = pblCgiQueryValue(AV_KEY_EMAIL);
+	char * email2 = pblCgiQueryValue(AV_KEY_EMAIL2);
+	char * password = pblCgiQueryValue(AV_KEY_PASSWORD);
+	char * password2 = pblCgiQueryValue(AV_KEY_PASSWORD2);
 
-	avSetValue(AV_KEY_NAME, name);
-	avSetValue(AV_KEY_EMAIL, email);
-	avSetValue(AV_KEY_EMAIL2, email2);
+	pblCgiSetValue(AV_KEY_NAME, name);
+	pblCgiSetValue(AV_KEY_EMAIL, email);
+	pblCgiSetValue(AV_KEY_EMAIL2, email2);
 
 	if (!name || !*name)
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "You need to enter an author name.");
+			pblCgiSetValue(AV_KEY_REPLY, "You need to enter an author name.");
 		}
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 	if (strlen(name) > AV_MAX_NAME_LENGTH)
 	{
-		avSetValue(AV_KEY_REPLY, "The chosen author name is too long, it is longer than 64 characters.");
+		pblCgiSetValue(AV_KEY_REPLY, "The chosen author name is too long, it is longer than 64 characters.");
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 	int hasAlnum = 0;
@@ -156,52 +156,52 @@ static void actionRegister()
 			hasAlnum = 1;
 			continue;
 		}
-		avSetValue(AV_KEY_REPLY, "The chosen author name can only contain alphanumeric characters.");
+		pblCgiSetValue(AV_KEY_REPLY, "The chosen author name can only contain alphanumeric characters.");
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 	if (!hasAlnum)
 	{
-		avSetValue(AV_KEY_REPLY, "The chosen author name must contain at least one alphanumeric character.");
+		pblCgiSetValue(AV_KEY_REPLY, "The chosen author name must contain at least one alphanumeric character.");
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
 	if (!email || !*email)
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "You need to enter an email address.");
+			pblCgiSetValue(AV_KEY_REPLY, "You need to enter an email address.");
 		}
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 	if (strlen(email) > AV_MAX_KEY_LENGTH)
 	{
-		avSetValue(AV_KEY_REPLY, "The chosen email address is too long.");
+		pblCgiSetValue(AV_KEY_REPLY, "The chosen email address is too long.");
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
-	if (!avStrEquals(email, email2))
+	if (!pblCgiStrEquals(email, email2))
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "The two emails you entered differ.");
+			pblCgiSetValue(AV_KEY_REPLY, "The two emails you entered differ.");
 		}
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
 	if (!password || strlen(password) < 8)
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "The password you enter must be at least 8 characters long.");
+			pblCgiSetValue(AV_KEY_REPLY, "The password you enter must be at least 8 characters long.");
 		}
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
-	if (!avStrEquals(password, password2))
+	if (!pblCgiStrEquals(password, password2))
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "The two passwords you entered differ.");
+			pblCgiSetValue(AV_KEY_REPLY, "The two passwords you entered differ.");
 		}
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
@@ -209,7 +209,7 @@ static void actionRegister()
 	char * response = avAuthorCreate(name, email, password);
 	if (response)
 	{
-		avSetValue(AV_KEY_REPLY, response);
+		pblCgiSetValue(AV_KEY_REPLY, response);
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
@@ -218,36 +218,36 @@ static void actionRegister()
 		avPrintTemplate(avTemplateDirectory, "register.html", "text/html");
 	}
 
-	avSetValue(AV_KEY_REPLY, "Your registration was successful.");
+	pblCgiSetValue(AV_KEY_REPLY, "Your registration was successful.");
 	avPrintTemplate(avTemplateDirectory, "registerComplete.html", "text/html");
 }
 
 static int actionActivate()
 {
-	char * name = avQueryValue(AV_KEY_NAME);
-	char * activationCode = avQueryValue(AV_KEY_ACTIVATION_CODE);
+	char * name = pblCgiQueryValue(AV_KEY_NAME);
+	char * activationCode = pblCgiQueryValue(AV_KEY_ACTIVATION_CODE);
 
-	avSetValue(AV_KEY_NAME, name);
-	avSetValue(AV_KEY_ACTIVATION_CODE, activationCode);
+	pblCgiSetValue(AV_KEY_NAME, name);
+	pblCgiSetValue(AV_KEY_ACTIVATION_CODE, activationCode);
 
 	if (!name || !*name)
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "You need to enter an author name.");
+			pblCgiSetValue(AV_KEY_REPLY, "You need to enter an author name.");
 		}
 		avPrintTemplate(avTemplateDirectory, "activate.html", "text/html");
 	}
 	if (strlen(name) > AV_MAX_KEY_LENGTH)
 	{
-		avSetValue(AV_KEY_REPLY, "The name entered is too long.");
+		pblCgiSetValue(AV_KEY_REPLY, "The name entered is too long.");
 	}
 
 	if (!activationCode || !*activationCode)
 	{
-		if (avStrEquals("Yes", avQueryValue(AV_KEY_CONFIRM)))
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
 		{
-			avSetValue(AV_KEY_REPLY, "You need to enter the activation code.");
+			pblCgiSetValue(AV_KEY_REPLY, "You need to enter the activation code.");
 		}
 		avPrintTemplate(avTemplateDirectory, "activate.html", "text/html");
 	}
@@ -260,10 +260,10 @@ static int actionActivate()
 	char * dbActivationCode = avDbAuthorUpdateValues(AV_KEY_NAME, name, updateKeys, updateValues,
 	AV_KEY_ACTIVATION_CODE);
 
-	if (!avStrEquals(activationCode, dbActivationCode))
+	if (!pblCgiStrEquals(activationCode, dbActivationCode))
 	{
 		sleep(3);
-		avSetValue(AV_KEY_REPLY, "Bad activation code.");
+		pblCgiSetValue(AV_KEY_REPLY, "Bad activation code.");
 		avPrintTemplate(avTemplateDirectory, "activate.html", "text/html");
 	}
 
@@ -281,13 +281,13 @@ static int actionConfirmAuthor()
 {
 	if (!avUserIsAdministrator)
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("You cannot confirm authors."));
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("You cannot confirm authors."));
 
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
 
-	char * name = avQueryValue(AV_KEY_NAME);
-	char * id = avQueryValue(AV_KEY_ID);
+	char * name = pblCgiQueryValue(AV_KEY_NAME);
+	char * id = pblCgiQueryValue(AV_KEY_ID);
 	if (!name || !*name || !id || !*id)
 	{
 		avPrintTemplate(avTemplateDirectory, "registrationList.html", "text/html");
@@ -303,9 +303,9 @@ static int actionConfirmAuthor()
 		avPrintTemplate(avTemplateDirectory, "registrationList.html", "text/html");
 	}
 
-	avSetValue(AV_KEY_NAME, name);
-	avSetValue(AV_KEY_EMAIL, email);
-	avSetValue(AV_KEY_ACTIVATION_CODE, activationCode);
+	pblCgiSetValue(AV_KEY_NAME, name);
+	pblCgiSetValue(AV_KEY_EMAIL, email);
+	pblCgiSetValue(AV_KEY_ACTIVATION_CODE, activationCode);
 
 	avPrintTemplate(avTemplateDirectory, "confirmationMail.html", "text/html");
 	return 0;
@@ -313,51 +313,51 @@ static int actionConfirmAuthor()
 
 static int actionChangePassword()
 {
-	char * confirmation = avQueryValue(AV_KEY_CONFIRM);
-	if (!confirmation || !*confirmation || !avStrEquals("Yes", confirmation))
+	char * confirmation = pblCgiQueryValue(AV_KEY_CONFIRM);
+	if (!confirmation || !*confirmation || !pblCgiStrEquals("Yes", confirmation))
 	{
-		avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 		avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 		return 0;
 	}
 
-	char * name = avQueryValue(AV_KEY_NAME);
-	char * oldPassword = avQueryValue(AV_KEY_OLD_PASSWORD);
-	char * password = avQueryValue(AV_KEY_PASSWORD);
-	char * password2 = avQueryValue(AV_KEY_PASSWORD2);
+	char * name = pblCgiQueryValue(AV_KEY_NAME);
+	char * oldPassword = pblCgiQueryValue(AV_KEY_OLD_PASSWORD);
+	char * password = pblCgiQueryValue(AV_KEY_PASSWORD);
+	char * password2 = pblCgiQueryValue(AV_KEY_PASSWORD2);
 
 	if (!password || strlen(password) < 8)
 	{
-		avSetValue(AV_KEY_REPLY, "The password you enter must be at least 8 characters long.");
-		avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_REPLY, "The password you enter must be at least 8 characters long.");
+		pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 		avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 		return 0;
 	}
 
-	if (!avStrEquals(password, password2))
+	if (!pblCgiStrEquals(password, password2))
 	{
-		avSetValue(AV_KEY_REPLY, "The two passwords you entered differ.");
-		avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_REPLY, "The two passwords you entered differ.");
+		pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 		avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 		return 0;
 	}
 
-	if (!avStrEquals(name, avUserIsLoggedIn) && !avUserIsAdministrator)
+	if (!pblCgiStrEquals(name, avUserIsLoggedIn) && !avUserIsAdministrator)
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("Change of password not allowed!"));
-		avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Change of password not allowed!"));
+		pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 		avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 		return 0;
 	}
 
-	if (!avUserIsAdministrator || avStrEquals(name, avUserIsLoggedIn))
+	if (!avUserIsAdministrator || pblCgiStrEquals(name, avUserIsLoggedIn))
 	{
 		char * message = avCheckNameAndPassword(name, oldPassword);
 		if (message)
 		{
-			avSetValue(AV_KEY_REPLY, avSprintf("Old password did not match!"));
+			pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Old password did not match!"));
 
-			avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+			pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 			avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 			return 0;
 		}
@@ -367,17 +367,17 @@ static int actionChangePassword()
 	char *updateValues[] = { avHashPassword(password), NULL };
 
 	avDbAuthorUpdateValues(AV_KEY_NAME, name, updateKeys, updateValues, NULL);
-	avSetValue(AV_KEY_REPLY, avSprintf("The password has been changed."));
+	pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("The password has been changed."));
 
-	avSetValue(AV_KEY_NAME, avUserIsLoggedIn);
+	pblCgiSetValue(AV_KEY_NAME, avUserIsLoggedIn);
 	avPrintTemplate(avTemplateDirectory, "changePassword.html", "text/html");
 	return 0;
 }
 
 static int actionDeleteAuthor()
 {
-	char * confirmation = avQueryValue(AV_KEY_CONFIRM);
-	if (confirmation && *confirmation && !avStrEquals("Yes", confirmation))
+	char * confirmation = pblCgiQueryValue(AV_KEY_CONFIRM);
+	if (confirmation && *confirmation && !pblCgiStrEquals("Yes", confirmation))
 	{
 		if (!avUserIsAdministrator)
 		{
@@ -389,8 +389,8 @@ static int actionDeleteAuthor()
 
 	if (!confirmation || !*confirmation)
 	{
-		char * id = avQueryValue(AV_KEY_ID);
-		char * name = avQueryValue(AV_KEY_AUTHOR);
+		char * id = pblCgiQueryValue(AV_KEY_ID);
+		char * name = pblCgiQueryValue(AV_KEY_AUTHOR);
 		if (!name)
 		{
 			name = "";
@@ -404,30 +404,30 @@ static int actionDeleteAuthor()
 			avDbAuthorsList(0, 100, NULL, NULL);
 			avPrintTemplate(avTemplateDirectory, "authorList.html", "text/html");
 		}
-		if (!avUserIsAdministrator && !avStrEquals(id, avUserId))
+		if (!avUserIsAdministrator && !pblCgiStrEquals(id, avUserId))
 		{
-			avSetValue(AV_KEY_REPLY, avSprintf("You cannot delete the author '%s'!", name));
+			pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("You cannot delete the author '%s'!", name));
 
 			avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 		}
 
 		if (avUserIsAdministrator)
 		{
-			avSetValue(AV_KEY_REPLY,
-					avSprintf("Do you really want to delete the author with id '%s' and name '%s'?", id, name));
+			pblCgiSetValue(AV_KEY_REPLY,
+					pblCgiSprintf("Do you really want to delete the author with id '%s' and name '%s'?", id, name));
 		}
 		else
 		{
-			avSetValue(AV_KEY_REPLY, avSprintf("Do you really want to delete your author account?", name));
+			pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Do you really want to delete your author account?", name));
 		}
-		avSetValue(AV_KEY_DATA, id);
-		avSetValue(AV_KEY_DATA2, name);
-		avSetValue(AV_KEY_ACTION, "DeleteAuthor");
+		pblCgiSetValue(AV_KEY_DATA, id);
+		pblCgiSetValue(AV_KEY_DATA2, name);
+		pblCgiSetValue(AV_KEY_ACTION, "DeleteAuthor");
 		avPrintTemplate(avTemplateDirectory, "confirm.html", "text/html");
 	}
 
-	char * id = avQueryValue(AV_KEY_DATA);
-	char * name = avQueryValue(AV_KEY_DATA2);
+	char * id = pblCgiQueryValue(AV_KEY_DATA);
+	char * name = pblCgiQueryValue(AV_KEY_DATA2);
 	if (!name)
 	{
 		name = "";
@@ -442,9 +442,9 @@ static int actionDeleteAuthor()
 		avPrintTemplate(avTemplateDirectory, "authorList.html", "text/html");
 	}
 
-	if (!avUserIsAdministrator && !avStrEquals(id, avUserId))
+	if (!avUserIsAdministrator && !pblCgiStrEquals(id, avUserId))
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("You cannot delete the author '%s'!", name));
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("You cannot delete the author '%s'!", name));
 
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
@@ -452,7 +452,7 @@ static int actionDeleteAuthor()
 	char * message = avDbAuthorDelete(id, name);
 	if (message)
 	{
-		avSetValue(AV_KEY_REPLY, message);
+		pblCgiSetValue(AV_KEY_REPLY, message);
 	}
 	if (!avUserIsAdministrator)
 	{
@@ -472,24 +472,24 @@ static int actionDeleteSession()
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
 
-	char * confirmation = avQueryValue(AV_KEY_CONFIRM);
+	char * confirmation = pblCgiQueryValue(AV_KEY_CONFIRM);
 	if (!confirmation || !*confirmation)
 	{
-		char * id = avQueryValue(AV_KEY_ID);
+		char * id = pblCgiQueryValue(AV_KEY_ID);
 		if (!id || !*id)
 		{
 			avDbSessionsList(0, 10000);
 			avPrintTemplate(avTemplateDirectory, "sessionList.html", "text/html");
 		}
 
-		avSetValue(AV_KEY_REPLY, avSprintf("Do you really want to delete the session '%s'?", id));
-		avSetValue(AV_KEY_DATA, id);
-		avSetValue(AV_KEY_ACTION, "DeleteSession");
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Do you really want to delete the session '%s'?", id));
+		pblCgiSetValue(AV_KEY_DATA, id);
+		pblCgiSetValue(AV_KEY_ACTION, "DeleteSession");
 		avPrintTemplate(avTemplateDirectory, "confirm.html", "text/html");
 	}
 
-	char * id = avQueryValue(AV_KEY_DATA);
-	if (!avStrEquals("Yes", confirmation) || !id || !*id)
+	char * id = pblCgiQueryValue(AV_KEY_DATA);
+	if (!pblCgiStrEquals("Yes", confirmation) || !id || !*id)
 	{
 		avDbSessionsList(0, 10000);
 		avPrintTemplate(avTemplateDirectory, "sessionList.html", "text/html");
@@ -498,7 +498,7 @@ static int actionDeleteSession()
 	char * message = avSessionDelete(id);
 	if (message)
 	{
-		avSetValue(AV_KEY_REPLY, message);
+		pblCgiSetValue(AV_KEY_REPLY, message);
 	}
 
 	avDbSessionsList(0, 10000);
@@ -521,28 +521,28 @@ static void actionCheckLogin(int forceLogin)
 
 	if (!avUserIsLoggedIn && forceLogin)
 	{
-		char * password = avQueryValue(AV_KEY_PASSWORD);
-		char * name = avQueryValue(AV_KEY_NAME);
+		char * password = pblCgiQueryValue(AV_KEY_PASSWORD);
+		char * name = pblCgiQueryValue(AV_KEY_NAME);
 		if (name && *name && password && *password)
 		{
 			char * message = avCheckNameAndPasswordAndLogin(name, password);
 			if (message)
 			{
-				avSetValue(AV_KEY_REPLY, message);
-				char * name = avQueryValue(AV_KEY_NAME);
+				pblCgiSetValue(AV_KEY_REPLY, message);
+				char * name = pblCgiQueryValue(AV_KEY_NAME);
 				if (name && *name)
 				{
-					avSetValue(AV_KEY_NAME, name);
+					pblCgiSetValue(AV_KEY_NAME, name);
 				}
 				avPrintTemplate(avTemplateDirectory, "login.html", "text/html");
 			}
 		}
 		else
 		{
-			char * name = avQueryValue(AV_KEY_NAME);
+			char * name = pblCgiQueryValue(AV_KEY_NAME);
 			if (name && *name)
 			{
-				avSetValue(AV_KEY_NAME, name);
+				pblCgiSetValue(AV_KEY_NAME, name);
 			}
 			avPrintTemplate(avTemplateDirectory, "login.html", "text/html");
 		}
@@ -551,11 +551,11 @@ static void actionCheckLogin(int forceLogin)
 
 static void actionListAuthors()
 {
-	char * filterAuthor = avQueryValue(AV_KEY_FILTER_AUTHOR);
-	char * filterEmail = avQueryValue(AV_KEY_FILTER_EMAIL);
+	char * filterAuthor = pblCgiQueryValue(AV_KEY_FILTER_AUTHOR);
+	char * filterEmail = pblCgiQueryValue(AV_KEY_FILTER_EMAIL);
 
-	avSetValue(AV_KEY_FILTER_AUTHOR, filterAuthor);
-	avSetValue(AV_KEY_FILTER_EMAIL, filterEmail);
+	pblCgiSetValue(AV_KEY_FILTER_AUTHOR, filterAuthor);
+	pblCgiSetValue(AV_KEY_FILTER_EMAIL, filterEmail);
 
 	avDbAuthorsList(0, 1000, filterAuthor, filterEmail);
 	avPrintTemplate(avTemplateDirectory, "authorList.html", "text/html");
@@ -578,29 +578,29 @@ int main(int argc, char * argv[])
 	struct timeval startTime;
 	gettimeofday(&startTime, NULL);
 
-	avConfigMap = avFileToMap(NULL, "./config/arvosconfig.txt");
+	avConfigMap = pblCgiFileToMap(NULL, "./config/arvosconfig.txt");
 
 	avSetAdministratorNames();
 
 	avTemplateDirectory = avConfigValue(AV_TEMPLATE_DIRECTORY, "../templates/");
 
-	avInit(&startTime, avConfigValue(AV_TRACE_FILE, ""), avConfigValue(AV_DATABASE_DIRECTORY, "../database/"));
+	avInit(&startTime, avConfigValue(PBL_CGI_TRACE_FILE, ""), avConfigValue(AV_DATABASE_DIRECTORY, "../database/"));
 
-	avParseQuery(argc, argv);
+	pblCgiParseQuery(argc, argv);
 
-	char * action = avQueryValue(AV_KEY_ACTION);
+	char * action = pblCgiQueryValue(AV_KEY_ACTION);
 
 	actionCheckLogin(0);
 
 	// Actions possible without a login
 	//
 
-	if (avStrEquals("Register", action))
+	if (pblCgiStrEquals("Register", action))
 	{
 		actionRegister();
 	}
 
-	if (avStrEquals("Activate", action))
+	if (pblCgiStrEquals("Activate", action))
 	{
 		if (actionActivate())
 		{
@@ -608,12 +608,12 @@ int main(int argc, char * argv[])
 		}
 	}
 
-	if (avStrEquals("ListChannels", action))
+	if (pblCgiStrEquals("ListChannels", action))
 	{
 		return actionListChannels();
 	}
 
-	if (avStrEquals("ShowChannel", action))
+	if (pblCgiStrEquals("ShowChannel", action))
 	{
 		return actionShowChannel();
 	}
@@ -624,28 +624,28 @@ int main(int argc, char * argv[])
 
 	if (!avUserIsLoggedIn)
 	{
-		avSetValue(AV_KEY_REPLY, "You need to log in in order to access this site.");
-		char * name = avQueryValue(AV_KEY_NAME);
+		pblCgiSetValue(AV_KEY_REPLY, "You need to log in in order to access this site.");
+		char * name = pblCgiQueryValue(AV_KEY_NAME);
 		if (name && *name)
 		{
-			avSetValue(AV_KEY_NAME, name);
+			pblCgiSetValue(AV_KEY_NAME, name);
 		}
 		avPrintTemplate(avTemplateDirectory, "login.html", "text/html");
 	}
 
 	// Actions possible with login
 
-	if (avStrEquals("Logout", action))
+	if (pblCgiStrEquals("Logout", action))
 	{
 		return actionLogout();
 	}
 
-	if (avStrEquals("ChangePassword", action))
+	if (pblCgiStrEquals("ChangePassword", action))
 	{
 		return actionChangePassword();
 	}
 
-	if (avStrEquals("DeleteAuthor", action))
+	if (pblCgiStrEquals("DeleteAuthor", action))
 	{
 		return actionDeleteAuthor();
 	}
@@ -659,17 +659,17 @@ int main(int argc, char * argv[])
 
 	// Actions for authors
 
-	if (avStrEquals("ListChannelsByAuthor", action))
+	if (pblCgiStrEquals("ListChannelsByAuthor", action))
 	{
 		return actionListChannelsByAuthor();
 	}
 
-	if (avStrEquals("EditChannel", action))
+	if (pblCgiStrEquals("EditChannel", action))
 	{
 		return actionEditChannel();
 	}
 
-	if (avStrEquals("DeleteChannel", action))
+	if (pblCgiStrEquals("DeleteChannel", action))
 	{
 		return actionDeleteChannel();
 	}
@@ -683,32 +683,32 @@ int main(int argc, char * argv[])
 
 	// Actions for administrators are below
 
-	if (avStrEquals("ListAuthors", action))
+	if (pblCgiStrEquals("ListAuthors", action))
 	{
 		actionListAuthors();
 	}
 
-	if (avStrEquals("ListRegistrations", action))
+	if (pblCgiStrEquals("ListRegistrations", action))
 	{
 		actionListRegistrations();
 	}
 
-	if (avStrEquals("ConfirmAuthor", action))
+	if (pblCgiStrEquals("ConfirmAuthor", action))
 	{
 		return actionConfirmAuthor();
 	}
 
-	if (avStrEquals("ListSessions", action))
+	if (pblCgiStrEquals("ListSessions", action))
 	{
 		actionListSessions();
 	}
 
-	if (avStrEquals("DeleteSession", action))
+	if (pblCgiStrEquals("DeleteSession", action))
 	{
 		return actionDeleteSession();
 	}
 
-	if (avStrEquals("FillDatabase", action))
+	if (pblCgiStrEquals("FillDatabase", action))
 	{
 		return actionFillDatabase();
 	}

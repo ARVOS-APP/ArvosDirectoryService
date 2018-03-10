@@ -59,10 +59,10 @@ char * avDbSession_c_id = "$Id: avDbSession.c,v 1.2 2016/12/13 21:47:21 peter Ex
  */
 char * avDbSessionInsert(char * authorId, char * name, char * email, char * timeActivated, char ** cookiePtr)
 {
-	char * expirationTime = avTimeToStr(time(NULL) - (60 * 60));
+	char * expirationTime = pblCgiStrFromTime(time(NULL) - (60 * 60));
 	unsigned char bufferForRandomBytes[32];
-	char * cookie = avBufferToHexString(avRandomBytes(bufferForRandomBytes, 32), 32);
-	PblMap * map = avNewMap();
+	char * cookie = pblCgiStrToHexFromBuffer(avRandomBytes(bufferForRandomBytes, 32), 32);
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s < %Q; ", AV_KEY_ID, AV_KEY_TIME_LAST_ACCESS,
 			expirationTime);
@@ -71,7 +71,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 
 	for (int i = 0; i >= 0; i++)
 	{
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -80,7 +80,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 		}
 		avDbSessionDelete(value);
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 
 	for (;;)
 	{
@@ -92,7 +92,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 		if (count > 0)
 		{
 			PBL_FREE(cookie);
-			cookie = avBufferToHexString(avRandomBytes(bufferForRandomBytes, 32), 32);
+			cookie = pblCgiStrToHexFromBuffer(avRandomBytes(bufferForRandomBytes, 32), 32);
 			continue;
 		}
 		break;
@@ -103,7 +103,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 	char * dataValues[] = { nowTimeStr, name, email, timeActivated, NULL };
 	map = avUpdateData(NULL, keyValues, dataValues);
 	char * dataStr = avMapToDataStr(map);
-	avMapFree(map);
+	pblCgiMapFree(map);
 
 	sql = sqlite3_mprintf("INSERT INTO session ( %s, %s, %s, %s, %s ) "
 			"VALUES ( NULL, %Q, %Q, %Q, %Q );"
@@ -118,7 +118,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 	avSqlExec(sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
-		avExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
+		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
 	}
 	sqlite3_free(sql);
 	PBL_FREE(dataStr);
@@ -170,7 +170,7 @@ void avDbSessionDeleteByCookie(char * cookie)
  */
 PblMap * avDbSessionGetBy(char * key, char * value)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s FROM session WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_COOKIE,
 	AV_KEY_TIME_LAST_ACCESS, AV_KEY_AUTHOR, AV_KEY_VALUES, key, value);
@@ -178,9 +178,9 @@ PblMap * avDbSessionGetBy(char * key, char * value)
 	avSqlExec(sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
-	if (avMapIsEmpty(map))
+	if (pblCgiMapIsEmpty(map))
 	{
-		avMapFree(map);
+		pblCgiMapFree(map);
 		return NULL;
 	}
 	return map;
@@ -220,7 +220,7 @@ void avDbSessionUpdateColumn(char * key, char * value, char * updateKey, char * 
  */
 char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, char ** updateValues, char * returnKey)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
@@ -240,7 +240,7 @@ char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	if (returnKey)
 	{
-		int index = avStrArrayContains(avDbSessionColumnNames, returnKey);
+		int index = pblCgiStrArrayContains(avDbSessionColumnNames, returnKey);
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s = %Q; ", returnKey, key, value);
@@ -249,10 +249,10 @@ char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, cha
 		}
 		else
 		{
-			rPtr = avStrDup(pblMapGetStr(map, returnKey));
+			rPtr = pblCgiStrDup(pblMapGetStr(map, returnKey));
 		}
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return rPtr;
 }
 
@@ -261,9 +261,9 @@ static void avDbSessionSetValuesForIteration(char * id, int iteration)
 	PblMap * map = avDbSessionGet(id);
 	if (pblCollectionAggregate(map, &iteration, avMapStrToValues) != 0)
 	{
-		avExitOnError("Failed to aggregate session values, pbl_errno = %d\n", pbl_errno);
+		pblCgiExitOnError("Failed to aggregate session values, pbl_errno = %d\n", pbl_errno);
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 }
 
 /**
@@ -272,7 +272,7 @@ static void avDbSessionSetValuesForIteration(char * id, int iteration)
 int avDbSessionsList(int offset, int n)
 {
 	int iteration = 0;
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session ORDER BY %s ASC; ", AV_KEY_ID, AV_KEY_TIME_LAST_ACCESS);
 	avSqlExec(sql, avCallbackColumnValues, &map);
@@ -284,7 +284,7 @@ int avDbSessionsList(int offset, int n)
 		{
 			break;
 		}
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -303,7 +303,7 @@ int avDbSessionsList(int offset, int n)
 		avDbSessionSetValuesForIteration(value, iteration++);
 	}
 
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return iteration;
 }
 

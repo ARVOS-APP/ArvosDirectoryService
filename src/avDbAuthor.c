@@ -77,7 +77,7 @@ char * avDbAuthorInsert(char * name, char * email, char * password)
 	avSqlExec(sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
-		avExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
+		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
 	}
 	sqlite3_free(sql);
 	PBL_FREE(dataStr);
@@ -92,9 +92,9 @@ char * avDbAuthorDelete(char * id, char * name)
 	char * reply = NULL;
 	char * authorId = NULL;
 
-	if (!avUserIsAdministrator && !avStrEquals(avUserId, id))
+	if (!avUserIsAdministrator && !pblCgiStrEquals(avUserId, id))
 	{
-		avExitOnError("You do not have permission to delete user '%s'\n", name);
+		pblCgiExitOnError("You do not have permission to delete user '%s'\n", name);
 	}
 
 	char * sql = sqlite3_mprintf("DELETE FROM author WHERE %s = %Q; ", AV_KEY_ID, id);
@@ -102,7 +102,7 @@ char * avDbAuthorDelete(char * id, char * name)
 	avSqlExec(sql, NULL, NULL);
 	sqlite3_free(sql);
 
-	authorId = avStrDup(id);
+	authorId = pblCgiStrDup(id);
 
 	if (authorId && *authorId)
 	{
@@ -119,7 +119,7 @@ char * avDbAuthorDelete(char * id, char * name)
  */
 static PblMap * avDbAuthorGetBy(char * key, char * value)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s FROM author WHERE %s = %Q; ",
 	AV_KEY_ID, AV_KEY_NAME, AV_KEY_EMAIL, AV_KEY_TIME_ACTIVATED, AV_KEY_VALUES, key, value);
@@ -127,9 +127,9 @@ static PblMap * avDbAuthorGetBy(char * key, char * value)
 	avSqlExec(sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
-	if (avMapIsEmpty(map))
+	if (pblCgiMapIsEmpty(map))
 	{
-		avMapFree(map);
+		pblCgiMapFree(map);
 		return NULL;
 	}
 	return map;
@@ -169,7 +169,7 @@ void avDbAuthorUpdateColumn(char * key, char * value, char * updateKey, char * u
  */
 char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char ** updateValues, char * returnKey)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
@@ -189,7 +189,7 @@ char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char
 
 	if (returnKey)
 	{
-		int index = avStrArrayContains(avDbAuthorColumnNames, returnKey);
+		int index = pblCgiStrArrayContains(avDbAuthorColumnNames, returnKey);
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", returnKey, key, value);
@@ -198,10 +198,10 @@ char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char
 		}
 		else
 		{
-			rPtr = avStrDup(pblMapGetStr(map, returnKey));
+			rPtr = pblCgiStrDup(pblMapGetStr(map, returnKey));
 		}
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return rPtr;
 }
 
@@ -210,22 +210,22 @@ static void avDbAuthorSetValuesForIteration(char * id, int iteration)
 	PblMap * map = avDbAuthorGet(id);
 
 	char * name = pblMapGetStr(map, AV_KEY_NAME);
-	if (avUserIsAdministrator || avStrEquals(name, avUserIsLoggedIn))
+	if (avUserIsAdministrator || pblCgiStrEquals(name, avUserIsLoggedIn))
 	{
-		avSetValueForIteration(AV_KEY_DELETE_ALLOWED, name, iteration);
+		pblCgiSetValueForIteration(AV_KEY_DELETE_ALLOWED, name, iteration);
 	}
 	else
 	{
-		avUnSetValueForIteration(AV_KEY_DELETE_ALLOWED, iteration);
+		pblCgiUnSetValueForIteration(AV_KEY_DELETE_ALLOWED, iteration);
 	}
 
 	if (pblCollectionAggregate(map, &iteration, avMapStrToValues) != 0)
 	{
-		avExitOnError("Failed to aggregate author values, pbl_errno = %d\n", pbl_errno);
+		pblCgiExitOnError("Failed to aggregate author values, pbl_errno = %d\n", pbl_errno);
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 
-	avSetValueForIteration(AV_KEY_PASSWORD, "-", iteration);
+	pblCgiSetValueForIteration(AV_KEY_PASSWORD, "-", iteration);
 }
 
 struct avAuthorCallbackFilter
@@ -247,12 +247,12 @@ int avCallbackAuthorFilteredValues(void * callbackPtr, int nColums, char ** valu
 
 	if (nColums != 3)
 	{
-		avExitOnError("SQLite callback avCallbackAuthorFilteredValues called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackAuthorFilteredValues called with %d columns\n", nColums);
 	}
 	struct avAuthorCallbackFilter * filter = (struct avAuthorCallbackFilter *) callbackPtr;
 	if (!filter)
 	{
-		avExitOnError("SQLite callback avCallbackAuthorFilteredValues called with no filter\n");
+		pblCgiExitOnError("SQLite callback avCallbackAuthorFilteredValues called with no filter\n");
 	}
 
 	if (filter->n == 0)
@@ -262,7 +262,7 @@ int avCallbackAuthorFilteredValues(void * callbackPtr, int nColums, char ** valu
 
 	if (filter->authorFilter && *(filter->authorFilter))
 	{
-		char * author = avStrDup(values[1]);
+		char * author = pblCgiStrDup(values[1]);
 		for (ptr = author; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -277,7 +277,7 @@ int avCallbackAuthorFilteredValues(void * callbackPtr, int nColums, char ** valu
 
 	if (filter->emailFilter && *(filter->emailFilter))
 	{
-		char * email = avStrDup(values[2]);
+		char * email = pblCgiStrDup(values[2]);
 		for (ptr = email; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -300,8 +300,8 @@ int avCallbackAuthorFilteredValues(void * callbackPtr, int nColums, char ** valu
 		filter->n--;
 	}
 
-	char * key = avSprintf("%d", pblMapSize(filter->map));
-	avSetValueToMap(key, values[0], -1, filter->map);
+	char * key = pblCgiSprintf("%d", pblMapSize(filter->map));
+	pblCgiSetValueToMap(key, values[0], -1, filter->map);
 	PBL_FREE(key);
 
 	return 0;
@@ -318,7 +318,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 
 	if (authorFilter && *authorFilter)
 	{
-		authorFilter = avStrDup(authorFilter);
+		authorFilter = pblCgiStrDup(authorFilter);
 		for (ptr = authorFilter; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -327,7 +327,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 
 	if (emailFilter && *emailFilter)
 	{
-		emailFilter = avStrDup(emailFilter);
+		emailFilter = pblCgiStrDup(emailFilter);
 		for (ptr = emailFilter; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -337,7 +337,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 	struct avAuthorCallbackFilter filter;
 	filter.authorFilter = authorFilter;
 	filter.emailFilter = emailFilter;
-	filter.map = avNewMap();
+	filter.map = pblCgiNewMap();
 	filter.n = n;
 	filter.offset = offset;
 
@@ -350,7 +350,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 
 	for (int i = 0; i >= 0; i++)
 	{
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(filter.map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -360,7 +360,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 		avDbAuthorSetValuesForIteration(value, iteration++);
 	}
 
-	avMapFree(filter.map);
+	pblCgiMapFree(filter.map);
 	return iteration;
 }
 
@@ -372,7 +372,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 int avDbAuthorsListByTimeActivated(int offset, int n, char * timeActivated)
 {
 	int iteration = 0;
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_TIME_ACTIVATED, timeActivated);
 	avSqlExec(sql, avCallbackColumnValues, &map);
@@ -384,7 +384,7 @@ int avDbAuthorsListByTimeActivated(int offset, int n, char * timeActivated)
 		{
 			break;
 		}
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -403,6 +403,6 @@ int avDbAuthorsListByTimeActivated(int offset, int n, char * timeActivated)
 		avDbAuthorSetValuesForIteration(value, iteration++);
 	}
 
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return iteration;
 }

@@ -75,15 +75,11 @@ char * avCgi_c_id = "$Id: avCgi.c,v 1.5 2016/12/03 00:03:54 peter Exp $";
 /* Variables                                                                 */
 /*****************************************************************************/
 
-static const char *avHexDigits = "0123456789abcdef";
-
 static struct timeval avStartTime;
-
-FILE * avTraceFile = NULL;
 
 sqlite3 * avSqliteDb = NULL;
 
-char * avValueIncrement = "i++";
+char * pblCgiValueIncrement = "i++";
 
 /*****************************************************************************/
 /* Functions                                                                 */
@@ -96,7 +92,7 @@ void avSqlExec(char * statement, int (*callback)(void*, int, char**, char**), vo
 {
 	if (!statement)
 	{
-		avExitOnError("Out of memory\n");
+		pblCgiExitOnError("Out of memory\n");
 	}
 
 	char * message = NULL;
@@ -109,7 +105,7 @@ void avSqlExec(char * statement, int (*callback)(void*, int, char**, char**), vo
 			{
 				return;
 			}
-			avExitOnError("Failed to execute SQL statement \"%s\", message: %s\n", statement, message);
+			pblCgiExitOnError("Failed to execute SQL statement \"%s\", message: %s\n", statement, message);
 			sqlite3_free(message);
 		}
 	}
@@ -135,12 +131,12 @@ int avCallbackCellValue(void * ptr, int nColums, char ** values, char ** headers
 {
 	if (nColums != 1)
 	{
-		avExitOnError("SQLite callback avCallbackCellValue called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackCellValue called with %d columns\n", nColums);
 	}
 	char ** cellValue = (char **) ptr;
 	if (cellValue)
 	{
-		*cellValue = avStrDup(values[0]);
+		*cellValue = pblCgiStrDup(values[0]);
 	}
 	return 0;
 }
@@ -152,20 +148,20 @@ int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** headers
 {
 	if (nColums < 1)
 	{
-		avExitOnError("SQLite callback avCallbackRowValues called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackRowValues called with %d columns\n", nColums);
 	}
 	PblMap ** mapPtr = (PblMap **) ptr;
 	if (mapPtr)
 	{
 		for (int i = 0; i < nColums; i++)
 		{
-			if (avStrEquals("VALS", headers[i]))
+			if (pblCgiStrEquals("VALS", headers[i]))
 			{
 				avDataStrToMap(*mapPtr, values[i]);
 			}
 			else
 			{
-				avSetValueToMap(headers[i], values[i], -1, *mapPtr);
+				pblCgiSetValueToMap(headers[i], values[i], -1, *mapPtr);
 			}
 		}
 	}
@@ -179,13 +175,13 @@ int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** head
 {
 	if (nColums != 1)
 	{
-		avExitOnError("SQLite callback avCallbackColumnValues called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackColumnValues called with %d columns\n", nColums);
 	}
 	PblMap ** mapPtr = (PblMap **) ptr;
 	if (mapPtr)
 	{
-		char * key = avSprintf("%d", pblMapSize(*mapPtr));
-		avSetValueToMap(key, values[0], -1, *mapPtr);
+		char * key = pblCgiSprintf("%d", pblMapSize(*mapPtr));
+		pblCgiSetValueToMap(key, values[0], -1, *mapPtr);
 		PBL_FREE(key);
 	}
 	return 0;
@@ -200,14 +196,14 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	// CFLAGS="-Os -DSQLITE_THREADSAFE=0" ./configure; make
 	//
 
-	char * filePath = avStrCat(databasePath, "arvos.sqlite");
+	char * filePath = pblCgiStrCat(databasePath, "arvos.sqlite");
 	if ( SQLITE_OK != sqlite3_open(filePath, &avSqliteDb))
 	{
 		if (!avSqliteDb)
 		{
-			avExitOnError("Can't open SQLite database '%s': Out of memory\n", filePath);
+			pblCgiExitOnError("Can't open SQLite database '%s': Out of memory\n", filePath);
 		}
-		avExitOnError("Can't open SQLite database '%s': %s\n", filePath, sqlite3_errmsg(avSqliteDb));
+		pblCgiExitOnError("Can't open SQLite database '%s': %s\n", filePath, sqlite3_errmsg(avSqliteDb));
 		sqlite3_close(avSqliteDb);
 	}
 
@@ -226,7 +222,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 		if (count == 0)
 		{
-			avExitOnError("Failed to create session table '%s'\n", create);
+			pblCgiExitOnError("Failed to create session table '%s'\n", create);
 		}
 	}
 
@@ -245,7 +241,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 		if (count == 0)
 		{
-			avExitOnError("Failed to create author table '%s'\n", create);
+			pblCgiExitOnError("Failed to create author table '%s'\n", create);
 		}
 	}
 
@@ -264,7 +260,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 		if (count == 0)
 		{
-			avExitOnError("Failed to create channel table '%s'\n", create);
+			pblCgiExitOnError("Failed to create channel table '%s'\n", create);
 		}
 	}
 
@@ -283,7 +279,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 		if (count == 0)
 		{
-			avExitOnError("Failed to create location table '%s'\n", create);
+			pblCgiExitOnError("Failed to create location table '%s'\n", create);
 		}
 	}
 
@@ -310,98 +306,19 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 		fclose(stream);
 
-		avTraceFile = avFopen(traceFilePath, "a");
-		fputs("\n", avTraceFile);
-		fputs("\n", avTraceFile);
-		AV_TRACE("----------------------------------------> Started");
+		pblCgiTraceFile = pblCgiFopen(traceFilePath, "a");
+		fputs("\n", pblCgiTraceFile);
+		fputs("\n", pblCgiTraceFile);
+		PBL_CGI_TRACE("----------------------------------------> Started");
 
 		extern char **environ;
 		char ** envp = environ;
 
 		while (envp && *envp)
 		{
-			AV_TRACE("ENV %s", *envp++);
+			PBL_CGI_TRACE("ENV %s", *envp++);
 		}
 	}
-}
-
-void avTrace(const char * format, ...)
-{
-	if (!avTraceFile)
-	{
-		return;
-	}
-
-	va_list args;
-	va_start(args, format);
-
-	char buffer[AV_MAX_SIZE_OF_BUFFER_ON_STACK + 1];
-	int rc = vsnprintf(buffer, sizeof(buffer) - 1, format, args);
-	va_end(args);
-
-	if (rc < 0)
-	{
-		avExitOnError("Printing of format '%s' and size %lu failed with errno=%d\n", format, sizeof(buffer) - 1,
-		errno);
-	}
-	buffer[sizeof(buffer) - 1] = '\0';
-
-	char * now = avTimeToStr(time(NULL));
-	fputs(now, avTraceFile);
-	PBL_FREE(now);
-
-	fprintf(avTraceFile, " %d: ", getpid());
-
-	fputs(buffer, avTraceFile);
-	fputs("\n", avTraceFile);
-	fflush(avTraceFile);
-}
-
-/**
- * Like fopen, needed for Windows port
- */
-FILE * avFopen(char * filePath, char * openType)
-{
-	static char * tag = "avFopen";
-	FILE * stream;
-
-#ifdef WIN32
-
-	errno_t err = fopen_s(&stream, filePath, openType);
-	if (err != 0)
-	{
-		avExitOnError("%s: Cannot open file '%s', err=%d, errno=%d\n", tag,
-				filePath, err, errno);
-	}
-
-#else
-
-	if (!(stream = fopen(filePath, openType)))
-	{
-		avExitOnError("%s: Cannot open file '%s', errno=%d\n", tag, filePath, errno);
-	}
-
-#endif
-	return stream;
-}
-
-/**
- * Like getenv, needed for Windows port
- */
-char * avGetEnv(char * name)
-{
-#ifdef WIN32
-
-	char *value;
-	size_t len;
-	_dupenv_s(&value, &len, name);
-	return value;
-
-#else
-
-	return getenv(name);
-
-#endif
 }
 
 static char * avCookieKey = AV_COOKIE;
@@ -412,455 +329,7 @@ static char * avCookieTag = AV_COOKIE "=";
  */
 char * avGetCoockie()
 {
-	char * cookie = avStrDup(avGetEnv("HTTP_COOKIE"));
-	if (cookie && *cookie)
-	{
-		cookie = strstr(cookie, avCookieTag);
-		if (cookie)
-		{
-			cookie += strlen(avCookieTag);
-		}
-	}
-	else
-	{
-		cookie = avQueryValue(avCookieKey);
-	}
-
-	if (!cookie || !*cookie)
-	{
-		return NULL;
-	}
-	for (char * ptr = cookie; *ptr; ptr++)
-	{
-		if (!strchr(avHexDigits, *ptr))
-		{
-			*ptr = '\0';
-			break;
-		}
-	}
-	return cookie;
-}
-
-static char * contentType = NULL;
-static void avSetContentType(char * type)
-{
-	if (!contentType)
-	{
-		char * cookie = avValue(AV_COOKIE);
-		char * cookiePath = avValue(AV_COOKIE_PATH);
-		char * cookieDomain = avValue(AV_COOKIE_DOMAIN);
-
-		contentType = type;
-
-		if (cookie && cookiePath && cookieDomain)
-		{
-			printf("Content-Type: %s\n", contentType);
-			AV_TRACE("Content-Type: %s\n", contentType);
-
-			printf("Set-Cookie: %s%s; Path=%s; DOMAIN=%s; HttpOnly\n\n", avCookieTag, cookie, cookiePath, cookieDomain);
-			AV_TRACE("Set-Cookie: %s%s; Path=%s; DOMAIN=%s; HttpOnly\n\n", avCookieTag, cookie, cookiePath,
-					cookieDomain);
-		}
-		else
-		{
-			printf("Content-Type: %s\n\n", contentType);
-			AV_TRACE("Content-Type: %s\n", contentType);
-		}
-	}
-}
-
-/**
- * Print an error message and exit the program.
- */
-void avExitOnError(const char * format, ...)
-{
-	avSetContentType("text/html");
-
-	printf("<!DOCTYPE html>\n"
-			"<html>\n"
-			"<head>\n"
-			"<title>Arvos-App Server</title>\n"
-			"</head>\n"
-			"<body>\n"
-			"<h1>\n"
-			"<a href=\"http://www.arvos-app.com/\"><img\n"
-			"src=\"http://www.arvos-app.com/images/arvos_logo_rgb-weiss256.png\" WIDTH=64></IMG></a> \n"
-			"Arvos - Augmented Reality Viewer Open Source\n"
-			"</h1>\n"
-			"<p><hr> <p>\n"
-			"<h1>An error occurred</h1>\n");
-
-	char * scriptName = avGetEnv("SCRIPT_NAME");
-	if (!scriptName || !*scriptName)
-	{
-		scriptName = "unknown";
-	}
-
-	printf("<p>While accessing the script '%s'.\n", scriptName);
-	printf("<p><b>\n");
-
-	va_list args;
-	va_start(args, format);
-
-	char buffer[AV_MAX_SIZE_OF_BUFFER_ON_STACK + 1];
-	int rc = vsnprintf(buffer, sizeof(buffer) - 1, format, args);
-	va_end(args);
-
-	if (rc < 0)
-	{
-		printf("Printing of format '%s' and size %lu failed with errno=%d\n", format, sizeof(buffer) - 1, errno);
-	}
-	else
-	{
-		buffer[sizeof(buffer) - 1] = '\0';
-		printf("%s", buffer);
-		AV_TRACE("%s", buffer);
-	}
-
-	printf("</b>\n");
-	printf("<p>Please click your browser's back button to continue.\n");
-	printf("<p><hr> <p>\n");
-	printf("<small>Copyright &copy; 2016 - Tamiko Thiel and Peter Graf</small>\n");
-	printf("</body></HTML>\n");
-
-	AV_TRACE("%s exit(-1)", scriptName);
-	exit(-1);
-}
-
-/**
- * Like sprintf, copies the value to the heap.
- */
-char * avSprintf(const char * format, ...)
-{
-	va_list args;
-	va_start(args, format);
-
-	char buffer[AV_MAX_SIZE_OF_BUFFER_ON_STACK + 1];
-	int rc = vsnprintf(buffer, sizeof(buffer) - 1, format, args);
-	va_end(args);
-
-	if (rc < 0)
-	{
-		avExitOnError("Printing of format '%s' and size %lu failed with errno=%d\n", format, sizeof(buffer) - 1,
-		errno);
-	}
-	buffer[sizeof(buffer) - 1] = '\0';
-	return avStrDup(buffer);
-}
-
-/**
- * Tests whether a NULL terminated string array contains a string
- */
-int avStrArrayContains(char ** array, char * string)
-{
-	for (int i = 0;; i++)
-	{
-		char * ptr = array[i];
-		if (!ptr)
-		{
-			break;
-		}
-		if (avStrEquals(ptr, string))
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-/**
- * Copies at most n bytes, the result is always 0 terminated
- */
-char * avStrNCpy(char *dest, char *string, size_t n)
-{
-	char * ptr = dest;
-	while (--n && (*ptr++ = *string++))
-		;
-
-	if (*ptr)
-	{
-		*ptr = '\0';
-	}
-	return dest;
-}
-
-static char * avTrimStart(char * string)
-{
-	for (; *string; string++)
-	{
-		if (!isspace(*string))
-		{
-			return string;
-		}
-	}
-	return string;
-}
-
-static void avTrimEnd(char * string)
-{
-	if (!string)
-	{
-		return;
-	}
-
-	char * ptr = (string + strlen(string)) - 1;
-	while (ptr >= string)
-	{
-		if (isspace(*ptr))
-		{
-			*ptr-- = '\0';
-		}
-		else
-		{
-			return;
-		}
-	}
-}
-
-/**
- * Trim the string, remove blanks at start and end.
- */
-char * avTrim(char * string)
-{
-	avTrimEnd(string);
-	return avTrimStart(string);
-}
-
-/**
- * Test if a string is NULL or white space only
- */
-int avStrIsNullOrWhiteSpace(char * string)
-{
-	if (string)
-	{
-		for (; *string; string++)
-		{
-			if (!isspace(*string))
-			{
-				return (0);
-			}
-		}
-	}
-	return (1);
-}
-
-char * avRangeDup(char * start, char * end)
-{
-	static char * tag = "avRangedup";
-
-	start = avTrimStart(start);
-	int length = end - start;
-	if (length > 0)
-	{
-		char * value = pbl_memdup(tag, start, length + 1);
-		if (!value)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-		value[length] = '\0';
-		avTrimEnd(value);
-		return value;
-	}
-	return avStrDup("");
-}
-
-/**
- * String equals, handles NULLs.
- */
-int avStrEquals(char * s1, char * s2)
-{
-	return !avStrCmp(s1, s2);
-}
-
-/**
- * Like strcmp, handles NULLs.
- */
-int avStrCmp(char * s1, char * s2)
-{
-	if (!s1)
-	{
-		if (!s2)
-		{
-			return 0;
-		}
-		return -1;
-	}
-	if (!s2)
-	{
-		return 1;
-	}
-	return strcmp(s1, s2);
-}
-
-/**
- * Like strdup.
- *
- * If an error occurs, the program exits with an error message.
- */
-char * avStrDup(char * string)
-{
-	static char * tag = "avStrDup";
-
-	if (!string)
-	{
-		string = "";
-	}
-	string = pbl_strdup(tag, string);
-	if (!string)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	return string;
-}
-
-/**
- * Like strcat, but the memory for the target is allocated.
- *
- * If an error occurs, the program exits with an error message.
- */
-char * avStrCat(char * s1, char * s2)
-{
-	static char * tag = "avStrCat";
-	char * result = NULL;
-	size_t len1 = 0;
-	size_t len2 = 0;
-
-	if (!s1 || !(*s1))
-	{
-		if (!s2 || !(*s2))
-		{
-			return avStrDup("");
-		}
-		return avStrDup(s2);
-	}
-
-	if (!s2 || !(*s2))
-	{
-		return avStrDup(s1);
-	}
-
-	len1 = strlen(s1);
-	len2 = strlen(s2);
-	result = pbl_malloc(tag, len1 + len2 + 1);
-	if (!result)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	memcpy(result, s1, len1);
-	memcpy(result + len1, s2, len2 + 1);
-	return result;
-}
-
-/**
- * Return a malloced time string.
- *
- * If an error occurs, the program exits with an error message.
- */
-char * avTimeToStr(time_t t)
-{
-	struct tm *tm;
-	tm = localtime((time_t *) &(t));
-
-	return avSprintf("%02d.%02d.%02d %02d:%02d:%02d", (tm->tm_year + 1900) % 100, tm->tm_mon + 1, tm->tm_mday,
-			tm->tm_hour, tm->tm_min, tm->tm_sec);
-}
-
-/**
- * Like split.
- *
- * If an error occurs, the program exits with an error message.
- *
- * The results should be defined as:
- *
- * 	char * results[size + 1];
- */
-int avSplit(char * string, char * splitString, size_t size, char * results[])
-{
-	unsigned int index = 0;
-	if (size < 1)
-	{
-		return index;
-	}
-
-	size_t length = strlen(splitString);
-	results[0] = NULL;
-
-	char * ptr = string;
-
-	for (;;)
-	{
-		if (index > size - 1)
-		{
-			return index;
-		}
-
-		char * ptr2 = strstr(ptr, splitString);
-		if (!ptr2)
-		{
-			results[index] = avStrDup(ptr);
-			results[++index] = NULL;
-
-			return index;
-		}
-		results[index] = avRangeDup(ptr, ptr2);
-		results[++index] = NULL;
-
-		ptr = ptr2 + length;
-	}
-	return (index);
-}
-
-/**
- * Split a string to a list.
- */
-PblList * avSplitToList(char * string, char * splitString)
-{
-	static char * tag = "avSplitToList";
-	PblList * list = pblListNewArrayList();
-	if (!list)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	char * strings[AV_MAX_LINE_LENGTH + 1];
-	int n = avSplit(string, splitString, AV_MAX_LINE_LENGTH, strings);
-	for (int i = 0; i < n; i++)
-	{
-		if (pblListAdd(list, avStrDup(avTrim(strings[i]))) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-	}
-	return list;
-}
-
-/**
- * Convert a buffer to a hex byte string
- *
- * If an error occurs, the program exits with an error message.
- *
- * return The malloced hex string.
- */
-char * avBufferToHexString(unsigned char * buffer, size_t length)
-{
-	static char * tag = "avBufferToHexString";
-	char * hexString = pbl_malloc(tag, 2 * length + 1);
-	if (!hexString)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	unsigned char c;
-	int stringIndex = 0;
-	for (unsigned int i = 0; i < length; i++)
-	{
-		hexString[stringIndex++] = avHexDigits[((c = buffer[i]) >> 4) & 0x0f];
-		hexString[stringIndex++] = avHexDigits[c & 0x0f];
-	}
-	hexString[stringIndex] = 0;
-
-	return hexString;
+	return pblCgiGetCoockie(avCookieKey, avCookieTag);
 }
 
 #ifndef ARVOS_CRYPTOLOGIC_RANDOM
@@ -909,7 +378,7 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 	{
 		if (rand_s(&number))
 		{
-			avExitOnError("%s: rand_s failed, errno=%d\n", tag, errno);
+			pblCgiExitOnError("%s: rand_s failed, errno=%d\n", tag, errno);
 		}
 
 		for (unsigned int j = 0; j < 4 && i < length; i++, j++)
@@ -928,7 +397,7 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 		ssize_t result = read(randomData, buffer + randomDataLen, length - randomDataLen);
 		if (result < 0)
 		{
-			avExitOnError("%s: unable to read /dev/random, errno=%d\n", tag,
+			pblCgiExitOnError("%s: unable to read /dev/random, errno=%d\n", tag,
 					errno);
 		}
 		randomDataLen += result;
@@ -1159,7 +628,7 @@ unsigned char * avSha256(unsigned char * buffer, size_t length)
 	unsigned char * digest = pbl_malloc(tag, AV_MAX_DIGEST_LEN);
 	if (!digest)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 	avSha256_ctx_t context;
 
@@ -1181,531 +650,9 @@ unsigned char * avSha256(unsigned char * buffer, size_t length)
 char * avSha256AsHexString(unsigned char * buffer, size_t length)
 {
 	unsigned char * digest = avSha256(buffer, length);
-	char * string = avBufferToHexString(digest, AV_MAX_DIGEST_LEN);
+	char * string = pblCgiStrToHexFromBuffer(digest, AV_MAX_DIGEST_LEN);
 	PBL_FREE(digest);
 	return string;
-}
-
-static char avCheckChar(char c)
-{
-	if (c < ' ' || c == '<')
-	{
-		return ' ';
-	}
-	return c;
-}
-
-static char * avDecode(char * source)
-{
-	static char * tag = "avDecode";
-	char * sourcePtr = source;
-	char * destinationPtr;
-	char * destination;
-	char buffer[3];
-	int i;
-
-	destinationPtr = destination = pbl_malloc(tag, strlen(source) + 1);
-	if (!destinationPtr)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	while (*sourcePtr)
-	{
-		if (*sourcePtr == '+')
-		{
-			*destinationPtr++ = ' ';
-			sourcePtr++;
-			continue;
-		}
-
-		if ((*sourcePtr == '%') && *(sourcePtr + 1) && *(sourcePtr + 2)
-				&& isxdigit((int )(*(sourcePtr + 1))) && isxdigit( (int)(*(sourcePtr + 2))))
-		{
-			avStrNCpy(buffer, sourcePtr + 1, 3);
-			buffer[2] = '\0';
-#ifdef WIN32
-			sscanf_s(buffer, "%x", &i);
-#else
-			sscanf(buffer, "%x", &i);
-#endif
-			*destinationPtr++ = (char) avCheckChar(i);
-			sourcePtr += 3;
-		}
-		else
-		{
-			*destinationPtr++ = avCheckChar(*sourcePtr++);
-			continue;
-		}
-	}
-	*destinationPtr = '\0';
-	return (destination);
-}
-
-/**
- * Reads a two column file into a string map.
- *
- * The format is
- *
- *   # Comment
- *   key   value
- *
- *   If the parameter map is NULL, a new string map is created.
- *   The pointer to the map used is returned.
- *
- * @return PblMap * retPtr != NULL: The pointer to the map.
- */
-PblMap * avFileToMap(PblMap * map, char * filePath)
-{
-	static char * tag = "avFileToMap";
-
-	if (!map)
-	{
-		if (!(map = pblMapNewHashMap()))
-		{
-			avExitOnError("Failed to create a map, pbl_errno = %d\n", pbl_errno);
-		}
-	}
-
-	FILE * stream = avFopen(filePath, "r");
-	char line[AV_MAX_LINE_LENGTH + 1];
-
-	while ((fgets(line, sizeof(line) - 1, stream)))
-	{
-		char * ptr = line;
-
-		while (*ptr && isspace(*ptr))
-		{
-			ptr++;
-		}
-
-		if (!*ptr)
-		{
-			continue;
-		}
-
-		if (*ptr == '#')
-		{
-			continue;
-		}
-
-		char * key = ptr;
-		while (*ptr && (!isspace(*ptr)))
-		{
-			ptr++;
-		}
-
-		if (*ptr)
-		{
-			*ptr++ = '\0';
-		}
-
-		char * value = avTrim(ptr);
-
-		if (pblMapAddStrStr(map, key, value) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-	}
-	fclose(stream);
-
-	return (map);
-}
-
-static PblMap * queryMap = NULL;
-static void avSetQueryValue(char * key, char * value)
-{
-	static char * tag = "avSetQueryValue";
-
-	if (!queryMap)
-	{
-		if (!(queryMap = pblMapNewHashMap()))
-		{
-			avExitOnError("Failed to create a map, pbl_errno = %d\n", pbl_errno);
-		}
-	}
-	if (!key || !*key)
-	{
-		return;
-	}
-	if (!value)
-	{
-		value = "";
-	}
-
-	if (pblMapAddStrStr(queryMap, key, value) < 0)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	AV_TRACE("In %s=%s", key, value);
-}
-
-/**
- * Get the value for an iteration given for the key in the query.
- */
-char * avQueryValueForIteration(char * key, int iteration)
-{
-	static char * tag = "avQueryValueForIteration";
-
-	if (!queryMap)
-	{
-		return "";
-	}
-	if (!key || !*key)
-	{
-		avExitOnError("%s: Empty key not allowed!\n", tag, pbl_errstr);
-	}
-	if (iteration >= 0)
-	{
-		char * iterationKey = avSprintf("%s_%d", key, iteration);
-		char * value = pblMapGetStr(queryMap, iterationKey);
-		PBL_FREE(iterationKey);
-		return value ? value : "";
-	}
-	char * value = pblMapGetStr(queryMap, key);
-	return value ? value : "";
-}
-
-/**
- * Get the value given for the key in the query.
- */
-char * avQueryValue(char * key)
-{
-	return avQueryValueForIteration(key, -1);
-}
-
-static PblMap * valueMap = NULL;
-
-PblMap * avValueMap()
-{
-	if (!valueMap)
-	{
-		if (!(valueMap = pblMapNewHashMap()))
-		{
-			avExitOnError("Failed to create value map, pbl_errno = %d\n", pbl_errno);
-		}
-	}
-	return valueMap;
-}
-/**
- * Set a value for the given key.
- */
-void avSetValue(char * key, char * value)
-{
-	avSetValueForIteration(key, value, -1);
-}
-
-/**
- * Set a value for the given key for a loop iteration.
- */
-void avSetValueForIteration(char * key, char * value, int iteration)
-{
-	avSetValueToMap(key, value, iteration, avValueMap());
-}
-
-/**
- * Set a value for the given key for a loop iteration into a map.
- */
-void avSetValueToMap(char * key, char * value, int iteration, PblMap * map)
-{
-	static char * tag = "avSetValueToMap";
-
-	if (!key || !*key)
-	{
-		return;
-	}
-	if (!value)
-	{
-		value = "";
-	}
-	if (iteration >= 0)
-	{
-		char * iteratedKey = avSprintf("%s_%d", key, iteration);
-
-		if (pblMapAddStrStr(map, iteratedKey, value) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-		if (map == valueMap)
-		{
-			AV_TRACE("Out %s=%s", iteratedKey, value);
-		}
-
-		PBL_FREE(iteratedKey);
-
-		iteratedKey = avSprintf("IDX_%d", iteration);
-		char * index = pblMapGetStr(map, iteratedKey);
-		if (!index)
-		{
-			index = avSprintf("%d", iteration);
-			if (pblMapAddStrStr(map, iteratedKey, index) < 0)
-			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-			}
-			if (map == valueMap)
-			{
-				AV_TRACE("Out %s=%s", iteratedKey, index);
-			}
-
-			PBL_FREE(index);
-		}
-		PBL_FREE(iteratedKey);
-	}
-	else
-	{
-		if (pblMapAddStrStr(map, key, value) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-		if (map == valueMap)
-		{
-			AV_TRACE("Out %s=%s", key, value);
-		}
-	}
-}
-
-/**
- * Clear the value for the given key.
- */
-void avUnSetValue(char * key)
-{
-	avUnSetValueForIteration(key, -1);
-}
-
-/**
- * Clear all values.
- */
-void avClearValues()
-{
-	if (!valueMap)
-	{
-		return;
-	}
-
-	AV_TRACE("Out cleared");
-	pblMapClear(valueMap);
-}
-
-/**
- * Clear the value for the given key for a loop iteration.
- */
-void avUnSetValueForIteration(char * key, int iteration)
-{
-	if (!valueMap)
-	{
-		return;
-	}
-	avUnSetValueFromMap(key, iteration, valueMap);
-}
-
-/**
- * Clear the value for the given key for a loop iteration from a map.
- */
-void avUnSetValueFromMap(char * key, int iteration, PblMap * map)
-{
-	if (!key || !*key)
-	{
-		return;
-	}
-
-	if (iteration >= 0)
-	{
-		char * iteratedKey = avSprintf("%s_%d", key, iteration);
-
-		pblMapUnmapStr(map, iteratedKey);
-		AV_TRACE("Del %s=", iteratedKey);
-		PBL_FREE(iteratedKey);
-
-	}
-	else
-	{
-		pblMapUnmapStr(map, key);
-		AV_TRACE("Del %s=", key);
-	}
-}
-
-/**
- * Get the value for the given key.
- */
-char * avValue(char * key)
-{
-	return avValueForIteration(key, -1);
-}
-
-static char * avDurationKey = AV_KEY_DURATION;
-
-/**
- * Get the value for the given key for a loop iteration.
- */
-char * avValueForIteration(char * key, int iteration)
-{
-	if (*key && *key == *avDurationKey && !strcmp(avDurationKey, key))
-	{
-		return avValueFromMap(key, iteration, valueMap);
-	}
-
-	if (!valueMap)
-	{
-		return NULL;
-	}
-	return avValueFromMap(key, iteration, valueMap);
-}
-
-/**
- * Get the value for the given key for a loop iteration from a map.
- */
-char * avValueFromMap(char * key, int iteration, PblMap * map)
-{
-	static char * tag = "avValueFromMap";
-
-	if (*key && *key == *avDurationKey && !strcmp(avDurationKey, key))
-	{
-		struct timeval now;
-		gettimeofday(&now, NULL);
-
-		unsigned long duration = now.tv_sec * 1000000 + now.tv_usec;
-		duration -= avStartTime.tv_sec * 1000000 + avStartTime.tv_usec;
-		char * string = avSprintf("%lu", duration);
-		AV_TRACE("Duration=%s microseconds", string);
-		return string;
-	}
-
-	if (!key || !*key)
-	{
-		avExitOnError("%s: Empty key not allowed!\n", tag, pbl_errstr);
-	}
-
-	if (iteration >= 0)
-	{
-		char * iteratedKey = avSprintf("%s_%d", key, iteration);
-		char * value = pblMapGetStr(map, iteratedKey);
-		PBL_FREE(iteratedKey);
-		return value;
-	}
-
-	return pblMapGetStr(map, key);
-}
-
-/**
- * Reads in GET or POST query data, converts it to non-escaped text,
- * and saves each parameter in the query map.
- *
- *  If there's no variables that indicates GET or POST, it is assumed
- *  that the CGI script was started from the command line, specifying
- *  the query string like
- *
- *      script 'key1=value1&key2=value2'
- *
- */
-void avParseQuery(int argc, char * argv[])
-{
-	static char * tag = "avParseQuery";
-	char * ptr = NULL;
-	char * queryString = NULL;
-
-#ifdef WIN32
-	_setmode (_fileno( stdin ), _O_BINARY);
-	_setmode (_fileno( stdout ), _O_BINARY);
-#endif
-
-	ptr = avGetEnv("REQUEST_METHOD");
-	if (!ptr || !*ptr)
-	{
-		if (argc < 2)
-		{
-			avExitOnError("%s: test usage: %s querystring\n", tag, argv[0]);
-		}
-		queryString = avStrDup(argv[1]);
-	}
-	else if (!strcmp(ptr, "GET"))
-	{
-		ptr = avGetEnv("QUERY_STRING");
-		if (!ptr || !*ptr)
-		{
-			queryString = avStrDup("");
-		}
-		else
-		{
-			queryString = avStrDup(ptr);
-		}
-	}
-	else if (!strcmp(ptr, "POST"))
-	{
-		size_t length = 0;
-
-		ptr = avGetEnv("QUERY_STRING");
-		if (!ptr || !*ptr)
-		{
-			queryString = avStrDup("");
-		}
-		else
-		{
-			queryString = avStrCat(ptr, "&");
-			length = strlen(queryString);
-		}
-
-		ptr = avGetEnv("CONTENT_LENGTH");
-		if (ptr && *ptr)
-		{
-			int contentLength = atoi(ptr);
-			if (contentLength > 0)
-			{
-				if (length + contentLength >= AV_MAX_POST_INPUT_LEN)
-				{
-					avExitOnError("%s: POST input too long, %d bytes\n", tag, length + contentLength);
-				}
-
-				queryString = realloc(queryString, length + contentLength + 1);
-				if (!queryString)
-				{
-					avExitOnError("%s: Out of memory\n", tag);
-				}
-
-				int rc;
-				ptr = queryString + length;
-				while (contentLength-- > 0)
-				{
-					if ((rc = getchar()) == EOF)
-					{
-						break;
-					}
-					*ptr++ = rc;
-				}
-				*ptr = '\0';
-			}
-		}
-	}
-	else
-	{
-		avExitOnError("%s: Unknown REQUEST_METHOD '%s'\n", tag, ptr);
-	}
-
-	AV_TRACE("In %s", queryString);
-
-	char * keyValuePairs[AV_MAX_QUERY_PARAMETERS_COUNT + 1];
-	char * keyValuePair[2 + 1];
-
-	avSplit(queryString, "&", AV_MAX_QUERY_PARAMETERS_COUNT + 1, keyValuePairs);
-	for (int i = 0; keyValuePairs[i]; i++)
-	{
-		avSplit(keyValuePairs[i], "=", 2, keyValuePair);
-		if (keyValuePair[0] && keyValuePair[1] && !keyValuePair[2])
-		{
-			char * key = avDecode(keyValuePair[0]);
-			char * value = avDecode(keyValuePair[1]);
-
-			avSetQueryValue(avTrim(key), avTrim(value));
-
-			PBL_FREE(key);
-			PBL_FREE(value);
-		}
-
-		PBL_FREE(keyValuePair[0]);
-		PBL_FREE(keyValuePair[1]);
-		PBL_FREE(keyValuePairs[i]);
-	}
-
-	PBL_FREE(queryString);
 }
 
 static char * avReplaceLowerThan(char * string, char *ptr2)
@@ -1716,7 +663,7 @@ static char * avReplaceLowerThan(char * string, char *ptr2)
 	PblStringBuilder * stringBuilder = pblStringBuilderNew();
 	if (!stringBuilder)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 
 	for (int i = 0; i < 1000000; i++)
@@ -1726,13 +673,13 @@ static char * avReplaceLowerThan(char * string, char *ptr2)
 		{
 			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t) -1))
 			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 		}
 
 		if (pblStringBuilderAppendStr(stringBuilder, "&lt;") == ((size_t) -1))
 		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+			pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 		}
 		ptr = ptr2 + 1;
 		ptr2 = strstr(ptr, "<");
@@ -1740,19 +687,19 @@ static char * avReplaceLowerThan(char * string, char *ptr2)
 		{
 			if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t) -1))
 			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 
 			char * result = pblStringBuilderToString(stringBuilder);
 			if (!result)
 			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 			pblStringBuilderFree(stringBuilder);
 			return result;
 		}
 	}
-	avExitOnError("%s: There are more than 1000000 '<' characters to be replaced in one string.\n", tag);
+	pblCgiExitOnError("%s: There are more than 1000000 '<' characters to be replaced in one string.\n", tag);
 	return NULL;
 }
 
@@ -1810,14 +757,14 @@ static char * avReplaceVariable(char * string, int iteration)
 	PblStringBuilder * stringBuilder = pblStringBuilderNew();
 	if (!stringBuilder)
 	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 	}
 
 	if (length > 0)
 	{
 		if (pblStringBuilderAppendStrN(stringBuilder, length, string) == ((size_t) -1))
 		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+			pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 		}
 	}
 
@@ -1830,7 +777,7 @@ static char * avReplaceVariable(char * string, int iteration)
 		{
 			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t) -1))
 			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 		}
 
@@ -1841,21 +788,21 @@ static char * avReplaceVariable(char * string, int iteration)
 			result = pblStringBuilderToString(stringBuilder);
 			if (!result)
 			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 			pblStringBuilderFree(stringBuilder);
 			return result;
 		}
 
-		char * key = avRangeDup(ptr, ptr2);
+		char * key = pblCgiStrRangeDup(ptr, ptr2);
 		char * value = NULL;
 		if (iteration >= 0)
 		{
-			value = avValueForIteration(key, iteration);
+			value = pblCgiValueForIteration(key, iteration);
 		}
 		if (!value)
 		{
-			value = avValue(key);
+			value = pblCgiValue(key);
 		}
 		PBL_FREE(key);
 
@@ -1866,7 +813,7 @@ static char * avReplaceVariable(char * string, int iteration)
 			{
 				if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t) -1))
 				{
-					avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
 			}
 			else
@@ -1876,7 +823,7 @@ static char * avReplaceVariable(char * string, int iteration)
 				{
 					if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t) -1))
 					{
-						avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+						pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 					}
 				}
 				PBL_FREE(value);
@@ -1891,12 +838,12 @@ static char * avReplaceVariable(char * string, int iteration)
 			{
 				if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t) -1))
 				{
-					avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
 				result = pblStringBuilderToString(stringBuilder);
 				if (!result)
 				{
-					avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
 				pblStringBuilderFree(stringBuilder);
 				return result;
@@ -1926,7 +873,7 @@ static char * avReplaceVariable(char * string, int iteration)
 			}
 		}
 	}
-	avExitOnError("%s: There are more than 1000000 variables defined in one string.\n", tag);
+	pblCgiExitOnError("%s: There are more than 1000000 variables defined in one string.\n", tag);
 	return NULL;
 }
 
@@ -1948,7 +895,7 @@ static char * avSkip(char * string, char * skipKey, FILE * outStream, int iterat
 		char *ptr2 = strstr(ptr, "-->");
 		if (ptr2)
 		{
-			char * key = avRangeDup(ptr, ptr2);
+			char * key = pblCgiStrRangeDup(ptr, ptr2);
 			if (!strcmp(skipKey, key))
 			{
 				PBL_FREE(skipKey);
@@ -1990,8 +937,8 @@ static char * avPrintStr(char * string, FILE * outStream, int iteration)
 			char *ptr2 = strstr(ptr, "-->");
 			if (ptr2)
 			{
-				char * key = avRangeDup(ptr, ptr2);
-				if (!avValue(key) && !avValueForIteration(key, iteration))
+				char * key = pblCgiStrRangeDup(ptr, ptr2);
+				if (!pblCgiValue(key) && !pblCgiValueForIteration(key, iteration))
 				{
 					return avSkip(ptr2 + 1, key, outStream, iteration);
 				}
@@ -2008,8 +955,8 @@ static char * avPrintStr(char * string, FILE * outStream, int iteration)
 			char *ptr2 = strstr(ptr, "-->");
 			if (ptr2)
 			{
-				char * key = avRangeDup(ptr, ptr2);
-				if (avValue(key) || avValueForIteration(key, iteration))
+				char * key = pblCgiStrRangeDup(ptr, ptr2);
+				if (pblCgiValue(key) || pblCgiValueForIteration(key, iteration))
 				{
 					return avSkip(ptr2 + 1, key, outStream, iteration);
 				}
@@ -2037,275 +984,6 @@ static char * avPrintStr(char * string, FILE * outStream, int iteration)
 	return NULL;
 }
 
-static char * avHandleFor(PblList * list, char * line, char * forKey)
-{
-	static char * tag = "avHandleFor";
-	char * ptr = strstr(line, "<!--#");
-	if (!ptr)
-	{
-		if (pblListAdd(list, avStrDup(line)) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-		return forKey;
-	}
-	if (!memcmp(ptr, "<!--#ENDFOR", 11))
-	{
-		if (ptr > line)
-		{
-			int length = ptr - line;
-			char * value = pbl_memdup(tag, line, length + 1);
-			if (!value)
-			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-			}
-			value[length] = '\0';
-
-			if (pblListAdd(list, value) < 0)
-			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-			}
-		}
-		ptr += 11;
-
-		char * ptr2 = strstr(ptr, "-->");
-		if (ptr2)
-		{
-			char * key = avRangeDup(ptr, ptr2);
-			if (!strcmp(forKey, key))
-			{
-				PBL_FREE(key);
-				return NULL;
-			}
-			PBL_FREE(key);
-		}
-	}
-	else
-	{
-		if (pblListAdd(list, avStrDup(line)) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-	}
-	return forKey;
-}
-
-static PblList * avReadFor(char * inputLine, char * forKey, FILE * stream)
-{
-	static char * tag = "avReadFor";
-	char line[AV_MAX_LINE_LENGTH + 1];
-
-	PblList * list = pblListNewLinkedList();
-	if (!list)
-	{
-		avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-
-	if (!avStrIsNullOrWhiteSpace(inputLine))
-	{
-		if (!avHandleFor(list, inputLine, forKey))
-		{
-			return list;
-		}
-	}
-
-	while ((fgets(line, sizeof(line) - 1, stream)))
-	{
-		if (!avHandleFor(list, line, forKey))
-		{
-			break;
-		}
-	}
-	return list;
-}
-
-static void avPrintFor(PblList * lines, char * forKey, FILE * outStream)
-{
-	static char * tag = "avPrintFor";
-	int hasNext;
-
-	for (unsigned long iteration = 0; 1; iteration++)
-	{
-		if (!avValueForIteration(forKey, iteration))
-		{
-			return;
-		}
-
-		char * skipKey = NULL;
-		PblIterator iteratorBuffer;
-		PblIterator * iterator = &iteratorBuffer;
-
-		if (pblIteratorInit((PblCollection *) lines, iterator) < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-		while ((hasNext = pblIteratorHasNext(iterator)) > 0)
-		{
-			char * line = (char*) pblIteratorNext(iterator);
-			if (line == (void*) -1)
-			{
-				avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-			}
-			if (line)
-			{
-				char * ptr = strstr(line, "<!--#");
-				if (!ptr)
-				{
-					if (!skipKey)
-					{
-						fputs(avReplaceVariable(line, iteration), outStream);
-					}
-					continue;
-				}
-
-				if (skipKey)
-				{
-					skipKey = avSkip(line, skipKey, outStream, iteration);
-					continue;
-				}
-				skipKey = avPrintStr(line, outStream, iteration);
-			}
-		}
-		if (hasNext < 0)
-		{
-			avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-		}
-	}
-}
-
-/**
- * Print a template
- */
-void avPrint(char * directory, char * fileName, char * contentType)
-{
-	static char * tag = "avPrint";
-
-	AV_TRACE("Directory=%s", directory);
-	AV_TRACE("FileName=%s", fileName);
-	AV_TRACE("ContentType=%s", contentType);
-
-	char * filePath = avStrCat(directory, fileName);
-	char * skipKey = NULL;
-	FILE * stream = avFopen(filePath, "r");
-	PBL_FREE(filePath);
-
-	if (contentType)
-	{
-		avSetContentType(contentType);
-	}
-
-	char line[AV_MAX_LINE_LENGTH + 1];
-
-	while ((fgets(line, sizeof(line) - 1, stream)))
-	{
-		char * start = line;
-		char * ptr = strstr(line, "<!--#");
-		if (!ptr)
-		{
-			if (!skipKey)
-			{
-				fputs(avReplaceVariable(line, -1), stdout);
-			}
-			continue;
-		}
-
-		if (skipKey)
-		{
-			skipKey = avSkip(line, skipKey, stdout, -1);
-			continue;
-		}
-
-		if (!memcmp(ptr, "<!--#INCLUDE", 12))
-		{
-			while (start < ptr)
-			{
-				fputc(*start++, stdout);
-			}
-			ptr += 12;
-
-			char * ptr2 = strstr(ptr, "-->");
-			if (ptr2)
-			{
-				char * includeFileName = avRangeDup(ptr, ptr2);
-				avPrint(directory, includeFileName, NULL);
-				PBL_FREE(includeFileName);
-
-				skipKey = avPrintStr(ptr2 + 3, stdout, -1);
-			}
-			continue;
-		}
-		if (!memcmp(ptr, "<!--#FOR", 8))
-		{
-			while (start < ptr)
-			{
-				fputc(*start++, stdout);
-			}
-			ptr += 8;
-
-			char * ptr2 = strstr(ptr, "-->");
-			if (ptr2)
-			{
-				char * forKey = avRangeDup(ptr, ptr2);
-				PblList * lines = avReadFor(ptr2 + 3, forKey, stream);
-				if (lines)
-				{
-					avPrintFor(lines, forKey, stdout);
-					while (pblListSize(lines))
-					{
-						char * p = pblListPop(lines);
-						if ((void*) -1 == p)
-						{
-							avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-						}
-						PBL_FREE(p);
-					}
-					pblListFree(lines);
-				}
-				PBL_FREE(forKey);
-			}
-			continue;
-		}
-		while (start < ptr)
-		{
-			fputc(*start++, stdout);
-		}
-		skipKey = avPrintStr(ptr, stdout, -1);
-	}
-	fclose(stream);
-}
-
-/**
- * Create a new empty map
- */
-PblMap * avNewMap()
-{
-	PblMap * map = pblMapNewHashMap();
-	if (!map)
-	{
-		avExitOnError("Failed to create a map, pbl_errno = %d\n", pbl_errno);
-	}
-	return map;
-}
-
-/**
- * Test if a map is empty
- */
-int avMapIsEmpty(PblMap * map)
-{
-	return 0 == pblMapSize(map);
-}
-
-/**
- * Release the memory used by a map
- */
-void avMapFree(PblMap * map)
-{
-	if (map)
-	{
-		pblMapFree(map);
-	}
-}
-
 /**
  * Get the values from the data of this string as a map.
  *
@@ -2331,13 +1009,13 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 
 	if (!map)
 	{
-		map = avNewMap();
+		map = pblCgiNewMap();
 	}
 
 	for (int i = 0; keys[i]; i++)
 	{
 		char * value = values[i];
-		if (value == avValueIncrement)
+		if (value == pblCgiValueIncrement)
 		{
 			value = pblMapGetStr(map, keys[i]);
 			if (value && *value)
@@ -2347,19 +1025,19 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 				value = pbl_malloc0(tag, length + 2);
 				if (!value)
 				{
-					avExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
 				snprintf(value, length + 1, "%d", ++n);
 				if (pblMapAddStrStr(map, keys[i], value) < 0)
 				{
-					avExitOnError("%s: Failed to save string '%s', value '%s' in the map, pbl_errno %d\n", tag, keys[i],
+					pblCgiExitOnError("%s: Failed to save string '%s', value '%s' in the map, pbl_errno %d\n", tag, keys[i],
 							value, pbl_errno);
 				}
 				PBL_FREE(value);
 			}
 			else if (pblMapAddStrStr(map, keys[i], "1") < 0)
 			{
-				avExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keys[i], pbl_errno);
+				pblCgiExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keys[i], pbl_errno);
 			}
 		}
 		else if (value)
@@ -2372,7 +1050,7 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 
 			if (pblMapAddStrStr(map, keys[i], value) < 0)
 			{
-				avExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keys[i], pbl_errno);
+				pblCgiExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keys[i], pbl_errno);
 			}
 		}
 		else
@@ -2397,13 +1075,13 @@ char * avMapToDataStr(PblMap * map)
 	PblStringBuilder * stringBuilder = pblMapStrStrToStringBuilder(map, "\t", "=");
 	if (!stringBuilder)
 	{
-		avExitOnError("%s: Failed to convert map to a string builder, pbl_errno %d\n", tag, pbl_errno);
+		pblCgiExitOnError("%s: Failed to convert map to a string builder, pbl_errno %d\n", tag, pbl_errno);
 	}
 
 	char * data = pblStringBuilderToString(stringBuilder);
 	if (!data)
 	{
-		avExitOnError("%s: Failed to convert string builder to a string, pbl_errno %d\n", tag, pbl_errno);
+		pblCgiExitOnError("%s: Failed to convert string builder to a string, pbl_errno %d\n", tag, pbl_errno);
 	}
 	pblStringBuilderFree(stringBuilder);
 
@@ -2423,21 +1101,21 @@ PblMap * avDataStrToMap(PblMap * map, char * buffer)
 
 	if (!map)
 	{
-		map = avNewMap();
+		map = pblCgiNewMap();
 	}
 
-	char * keyValuePairs[AV_MAX_LINE_LENGTH + 1];
+	char * keyValuePairs[PBL_CGI_MAX_LINE_LENGTH + 1];
 	char * keyValuePair[2 + 1];
 
-	avSplit(buffer, "\t", AV_MAX_LINE_LENGTH, keyValuePairs);
+	pblCgiStrSplit(buffer, "\t", PBL_CGI_MAX_LINE_LENGTH, keyValuePairs);
 	for (int i = 0; keyValuePairs[i]; i++)
 	{
-		avSplit(keyValuePairs[i], "=", 2, keyValuePair);
+		pblCgiStrSplit(keyValuePairs[i], "=", 2, keyValuePair);
 		if (keyValuePair[0] && keyValuePair[1] && !keyValuePair[2])
 		{
 			if (pblMapAddStrStr(map, keyValuePair[0], keyValuePair[1]) < 0)
 			{
-				avExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keyValuePair[0],
+				pblCgiExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keyValuePair[0],
 						pbl_errno);
 			}
 		}

@@ -52,7 +52,7 @@ extern "C"
 #include <unistd.h>
 #endif
 
-#include "pbl.h"
+#include "pblCgi.h"
 #include "sqlite3.h"
 
 /*****************************************************************************/
@@ -62,21 +62,11 @@ extern "C"
 #define AV_COOKIE_PATH                    "AV_COOKIE_PATH"
 #define AV_COOKIE_DOMAIN                  "AV_COOKIE_DOMAIN"
 
-#define AV_KEY_DURATION                   "avDURATION"
-
-#define AV_MAX_LINE_LENGTH			      (4 * 1024)
-
-#define AV_TRACE if(avTraceFile) avTrace
-
 /*****************************************************************************/
 /* Variable declarations                                                     */
 /*****************************************************************************/
 
-extern FILE * avTraceFile;
-
 extern sqlite3 * avSqliteDb;
-
-extern char * avValueIncrement;
 
 /*****************************************************************************/
 /* Function declarations                                                     */
@@ -89,61 +79,18 @@ extern int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** 
 extern int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** headers);
 
 extern void avInit(struct timeval * startTime, char * traceFilePath, char * databasePath);
-extern void avTrace(const char * format, ...);
 
-extern FILE * avFopen(char * traceFilePath, char * openType);
-extern char * avGetEnv(char * name);
 extern char * avGetCoockie();
 
-extern void avExitOnError(const char * format, ...);
-
-extern char * avSprintf(const char * format, ...);
-extern int avStrArrayContains(char ** array, char * string);
-extern char * avStrNCpy(char *dest, char *string, size_t n);
-extern char * avTrim(char * string);
-extern int avStrIsNullOrWhiteSpace(char * string);
-extern char * avRangeDup(char * start, char * end);
-extern char * avStrDup(char * string);
-extern int avStrEquals(char * s1, char * s2);
-extern int avStrCmp(char * s1, char * s2);
-extern char * avStrCat(char * s1, char * s2);
-extern char * avTimeToStr(time_t t);
-
-extern int avSplit(char * string, char * splitString, size_t size, char * result[]);
-extern PblList * avSplitToList(char * string, char * splitString);
-extern char * avBufferToHexString(unsigned char * buffer, size_t length);
 extern unsigned char * avRandomBytes(unsigned char * buffer, size_t length);
 
 extern unsigned char * avSha256(unsigned char * buffer, size_t length);
 extern char * avSha256AsHexString(unsigned char * buffer, size_t length);
 
-extern PblMap * avNewMap();
-extern int avMapIsEmpty(PblMap * map);
-extern void avMapFree(PblMap * map);
-extern PblMap * avFileToMap(PblMap * map, char * traceFilePath);
-
-extern void avParseQuery(int argc, char * argv[]);
-extern char * avQueryValue(char * key);
-extern char * avQueryValueForIteration(char * key, int iteration);
-
-extern PblMap * avValueMap();
-extern void avSetValue(char * key, char * value);
-extern void avSetValueForIteration(char * key, char * value, int iteration);
-extern void avSetValueToMap(char * key, char * value, int iteration, PblMap * map);
-extern void avUnSetValue(char * key);
-extern void avUnSetValueForIteration(char * key, int iteration);
-extern void avUnSetValueFromMap(char * key, int iteration, PblMap * map);
-extern void avClearValues();
-extern char * avValue(char * key);
-extern char * avValueForIteration(char * key, int iteration);
-extern char * avValueFromMap(char * key, int iteration, PblMap * map);
-
 extern PblMap * avDataValues(char * buffer);
 extern PblMap * avUpdateData(PblMap * map, char ** keys, char ** values);
 extern char * avMapToDataStr(PblMap * map);
 extern PblMap * avDataStrToMap(PblMap * map, char * buffer);
-
-extern void avPrint(char * directory, char * fileName, char * contentType);
 
 #ifdef __cplusplus
 }

@@ -54,7 +54,7 @@ extern "C"
 
 #define AV_TEMPLATE_DIRECTORY                "TemplateDirectory"
 #define AV_DATABASE_DIRECTORY                "DataBaseDirectory"
-#define AV_TRACE_FILE                        "TraceFilePath"
+#define PBL_CGI_TRACE_FILE                        "TraceFilePath"
 #define AV_ADMINISTRATOR_NAMES               "AdministratorNames"
 
 #define AV_NOT_ACTIVATED                     "Not activated"

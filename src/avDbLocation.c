@@ -72,7 +72,7 @@ char * avDbLocationInsert(char * channel, char * position)
 	avSqlExec(sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
-		avExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
+		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
 	}
 	sqlite3_free(sql);
 	return id;
@@ -96,7 +96,7 @@ void avDbLocationUpdateColumn(char * key, char * value, char * updateKey, char *
  */
 char * avDbLocationUpdateValues(char * key, char * value, char ** updateKeys, char ** updateValues, char * returnKey)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM location WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
@@ -116,7 +116,7 @@ char * avDbLocationUpdateValues(char * key, char * value, char ** updateKeys, ch
 
 	if (returnKey)
 	{
-		int index = avStrArrayContains(avDbLocationColumnNames, returnKey);
+		int index = pblCgiStrArrayContains(avDbLocationColumnNames, returnKey);
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM location WHERE %s = %Q; ", returnKey, key, value);
@@ -125,10 +125,10 @@ char * avDbLocationUpdateValues(char * key, char * value, char ** updateKeys, ch
 		}
 		else
 		{
-			rPtr = avStrDup(pblMapGetStr(map, returnKey));
+			rPtr = pblCgiStrDup(pblMapGetStr(map, returnKey));
 		}
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return rPtr;
 }
 
@@ -137,7 +137,7 @@ char * avDbLocationUpdateValues(char * key, char * value, char ** updateKeys, ch
  */
 PblMap * avDbLocationGet(char * id)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s AS %s, %s, %s AS %s, %s, %s FROM location WHERE %s = %Q; ",
 	AV_KEY_ID, AV_KEY_ID, AV_KEY_LOCATION, AV_KEY_CHANNEL, AV_KEY_CHANNEL, AV_KEY_LOCATION_CHANNEL,
@@ -146,9 +146,9 @@ PblMap * avDbLocationGet(char * id)
 	avSqlExec(sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
-	if (avMapIsEmpty(map))
+	if (pblCgiMapIsEmpty(map))
 	{
-		avMapFree(map);
+		pblCgiMapFree(map);
 		return NULL;
 	}
 	return map;
@@ -159,7 +159,7 @@ PblMap * avDbLocationGet(char * id)
  */
 PblMap * avDbLocationGetByChannel(char * channel)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s FROM location WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_CHANNEL,
 	AV_KEY_POSITION, AV_KEY_VALUES, AV_KEY_CHANNEL, channel);
@@ -167,9 +167,9 @@ PblMap * avDbLocationGetByChannel(char * channel)
 	avSqlExec(sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
-	if (avMapIsEmpty(map))
+	if (pblCgiMapIsEmpty(map))
 	{
-		avMapFree(map);
+		pblCgiMapFree(map);
 		return NULL;
 	}
 	return map;
@@ -203,15 +203,15 @@ void avDbLocationSetValuesToMap(char * id, int iteration, PblMap * map)
 
 			if (entry->valueLength > 1)
 			{
-				avSetValueToMap(pblMapEntryKey(entry), pblMapEntryValue(entry), iteration, map);
+				pblCgiSetValueToMap(pblMapEntryKey(entry), pblMapEntryValue(entry), iteration, map);
 			}
 			else
 			{
-				avUnSetValueFromMap(pblMapEntryKey(entry), iteration, map);
+				pblCgiUnSetValueFromMap(pblMapEntryKey(entry), iteration, map);
 			}
 		}
 	}
-	avMapFree(dataMap);
+	pblCgiMapFree(dataMap);
 }
 
 /**
@@ -242,7 +242,7 @@ void avDbLocationDeleteByChannel(char * channel)
 int avDbLocationsListByChannel(PblMap * targetMap, char * channel)
 {
 	int iteration = 0;
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM location WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_CHANNEL, channel);
 	avSqlExec(sql, avCallbackColumnValues, &map);
@@ -250,7 +250,7 @@ int avDbLocationsListByChannel(PblMap * targetMap, char * channel)
 
 	for (int i = 0; i >= 0; i++)
 	{
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -260,6 +260,6 @@ int avDbLocationsListByChannel(PblMap * targetMap, char * channel)
 		avDbLocationSetValuesToMap(value, iteration++, targetMap);
 	}
 
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return iteration;
 }

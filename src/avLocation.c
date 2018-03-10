@@ -74,7 +74,7 @@ char * avGetRadius(char * rad, int * value)
 		ptr = strchr(ptr + 1, '\t');
 		if (!ptr)
 		{
-			return avSprintf("Cannot parse radius from '%s'.", rad);
+			return pblCgiSprintf("Cannot parse radius from '%s'.", rad);
 		}
 	}
 	else if (strlen(rad) > 5)
@@ -85,7 +85,7 @@ char * avGetRadius(char * rad, int * value)
 	{
 		ptr = rad;
 	}
-	ptr = avTrim(ptr);
+	ptr = pblCgiStrTrim(ptr);
 
 	if (!isdigit(*ptr))
 	{
@@ -127,12 +127,12 @@ char * avGetAltitude(char * alt, int * value)
 		ptr = strchr(ptr + 1, '\t');
 		if (!ptr)
 		{
-			return avSprintf("Cannot parse altitude from '%s'.", alt);
+			return pblCgiSprintf("Cannot parse altitude from '%s'.", alt);
 		}
 		ptr = strchr(ptr + 1, '\t');
 		if (!ptr)
 		{
-			return avSprintf("Cannot parse altitude from '%s'.", alt);
+			return pblCgiSprintf("Cannot parse altitude from '%s'.", alt);
 		}
 	}
 	else if (strlen(alt) > 4)
@@ -143,11 +143,11 @@ char * avGetAltitude(char * alt, int * value)
 	{
 		ptr = alt;
 	}
-	ptr = avTrim(ptr);
+	ptr = pblCgiStrTrim(ptr);
 
 	if (*ptr != '-' && *ptr != '+' && !isdigit(*ptr))
 	{
-		return avSprintf("Cannot parse altitude from '%s'.", ptr);
+		return pblCgiSprintf("Cannot parse altitude from '%s'.", ptr);
 	}
 
 	errno = 0;
@@ -283,7 +283,7 @@ char * avLocationSave(char * id, char * channel, char * lat, char * lon, char * 
 		latitude = latitude + 100.;
 	}
 
-	char * position = avSprintf("%s%09.6f\t%03.6f\t%d\t%s", filler, latitude, longitude, (int) radius, alt);
+	char * position = pblCgiSprintf("%s%09.6f\t%03.6f\t%d\t%s", filler, latitude, longitude, (int) radius, alt);
 
 	if (!id || !*id)
 	{
@@ -294,9 +294,9 @@ char * avLocationSave(char * id, char * channel, char * lat, char * lon, char * 
 		PblMap * map = avDbLocationGet(id);
 		if (!map)
 		{
-			return avSprintf("Failed to access location with id '%s', pbl_errno %d.\n", id, pbl_errno);
+			return pblCgiSprintf("Failed to access location with id '%s', pbl_errno %d.\n", id, pbl_errno);
 		}
-		avMapFree(map);
+		pblCgiMapFree(map);
 
 		avDbLocationUpdateColumn(AV_KEY_ID, id, AV_KEY_CHANNEL, channel);
 		avDbLocationUpdateColumn(AV_KEY_ID, id, AV_KEY_POSITION, position);

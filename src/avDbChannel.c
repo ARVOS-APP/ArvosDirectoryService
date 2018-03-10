@@ -74,7 +74,7 @@ char * avDbChannelInsert(char * name, char * author, char * description, char * 
 	avSqlExec(sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
-		avExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
+		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
 	}
 	sqlite3_free(sql);
 	return id;
@@ -85,7 +85,7 @@ char * avDbChannelInsert(char * name, char * author, char * description, char * 
  */
 PblMap * avDbChannelGetBy(char * key, char * value)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s, %s FROM channel WHERE %s = %Q; ", AV_KEY_ID,
 	AV_KEY_CHANNEL, AV_KEY_AUTHOR, AV_KEY_DESCRIPTION, AV_KEY_DEVELOPER_KEY, AV_KEY_VALUES, key, value);
@@ -93,9 +93,9 @@ PblMap * avDbChannelGetBy(char * key, char * value)
 	avSqlExec(sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
-	if (avMapIsEmpty(map))
+	if (pblCgiMapIsEmpty(map))
 	{
-		avMapFree(map);
+		pblCgiMapFree(map);
 		return NULL;
 	}
 	return map;
@@ -136,7 +136,7 @@ void avDbChannelUpdateColumn(char * key, char * value, char * updateKey, char * 
  */
 char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, char ** updateValues, char * returnKey)
 {
-	PblMap * map = avNewMap();
+	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM channel WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
@@ -156,7 +156,7 @@ char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	if (returnKey)
 	{
-		int index = avStrArrayContains(avDbChannelColumnNames, returnKey);
+		int index = pblCgiStrArrayContains(avDbChannelColumnNames, returnKey);
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM channel WHERE %s = %Q; ", returnKey, key, value);
@@ -165,36 +165,36 @@ char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, cha
 		}
 		else
 		{
-			rPtr = avStrDup(pblMapGetStr(map, returnKey));
+			rPtr = pblCgiStrDup(pblMapGetStr(map, returnKey));
 		}
 	}
-	avMapFree(map);
+	pblCgiMapFree(map);
 	return rPtr;
 }
 
 void avDbChannelSetMapForIteration(PblMap * map, int iteration, char * location)
 {
 	char * author = pblMapGetStr(map, AV_KEY_AUTHOR);
-	if (avUserIsAdministrator || (avUserIsAuthor && avStrEquals(author, avUserIsAuthor)))
+	if (avUserIsAdministrator || (avUserIsAuthor && pblCgiStrEquals(author, avUserIsAuthor)))
 	{
-		avSetValueForIteration(AV_KEY_DELETE_ALLOWED, author, iteration);
-		avSetValueForIteration(AV_KEY_EDIT_ALLOWED, author, iteration);
+		pblCgiSetValueForIteration(AV_KEY_DELETE_ALLOWED, author, iteration);
+		pblCgiSetValueForIteration(AV_KEY_EDIT_ALLOWED, author, iteration);
 	}
 	else
 	{
-		avUnSetValueForIteration(AV_KEY_DELETE_ALLOWED, iteration);
-		avUnSetValueForIteration(AV_KEY_EDIT_ALLOWED, iteration);
+		pblCgiUnSetValueForIteration(AV_KEY_DELETE_ALLOWED, iteration);
+		pblCgiUnSetValueForIteration(AV_KEY_EDIT_ALLOWED, iteration);
 	}
 
 	if (pblCollectionAggregate(map, &iteration, avMapStrToValues) != 0)
 	{
-		avExitOnError("Failed to list aggregate channel values, pbl_errno = %d\n", pbl_errno);
+		pblCgiExitOnError("Failed to list aggregate channel values, pbl_errno = %d\n", pbl_errno);
 	}
 
 	char * id = pblMapGetStr(map, AV_KEY_ID);
 	if (iteration < 0 && !location)
 	{
-		avDbLocationsListByChannel(avValueMap(), id);
+		avDbLocationsListByChannel(pblCgiValueMap(), id);
 	}
 	else
 	{
@@ -210,12 +210,12 @@ void avDbChannelSetMapForIteration(PblMap * map, int iteration, char * location)
 
 		if (map)
 		{
-			avSetValueForIteration(AV_KEY_LOCATION, pblMapGetStr(map, AV_KEY_LOCATION), iteration);
-			avSetValueForIteration(AV_KEY_LAT, pblMapGetStr(map, AV_KEY_LAT), iteration);
-			avSetValueForIteration(AV_KEY_LON, pblMapGetStr(map, AV_KEY_LON), iteration);
-			avSetValueForIteration(AV_KEY_RADIUS, pblMapGetStr(map, AV_KEY_RADIUS), iteration);
-			avSetValueForIteration(AV_KEY_ALTITUDE, pblMapGetStr(map, AV_KEY_ALTITUDE), iteration);
-			avMapFree(map);
+			pblCgiSetValueForIteration(AV_KEY_LOCATION, pblMapGetStr(map, AV_KEY_LOCATION), iteration);
+			pblCgiSetValueForIteration(AV_KEY_LAT, pblMapGetStr(map, AV_KEY_LAT), iteration);
+			pblCgiSetValueForIteration(AV_KEY_LON, pblMapGetStr(map, AV_KEY_LON), iteration);
+			pblCgiSetValueForIteration(AV_KEY_RADIUS, pblMapGetStr(map, AV_KEY_RADIUS), iteration);
+			pblCgiSetValueForIteration(AV_KEY_ALTITUDE, pblMapGetStr(map, AV_KEY_ALTITUDE), iteration);
+			pblCgiMapFree(map);
 		}
 	}
 }
@@ -246,7 +246,7 @@ void avDbChannelSetValuesForIteration(char * id, int iteration, char * location)
 {
 	PblMap * map = avDbChannelGet(id);
 	avDbChannelSetMapForIteration(map, iteration, location);
-	avMapFree(map);
+	pblCgiMapFree(map);
 }
 
 struct avChannelCallbackFilter
@@ -274,12 +274,12 @@ int avCallbackChannelValues(void * callbackPtr, int nColums, char ** values, cha
 {
 	if (nColums != 3)
 	{
-		avExitOnError("SQLite callback avCallbackChannelValues called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackChannelValues called with %d columns\n", nColums);
 	}
 	struct avChannelCallbackFilter * filter = (struct avChannelCallbackFilter *) callbackPtr;
 	if (!filter)
 	{
-		avExitOnError("SQLite callback avCallbackChannelValues called with no filter\n");
+		pblCgiExitOnError("SQLite callback avCallbackChannelValues called with no filter\n");
 	}
 
 	if (filter->n == 0)
@@ -289,10 +289,10 @@ int avCallbackChannelValues(void * callbackPtr, int nColums, char ** values, cha
 
 	char * channelAuthor = values[1];
 	char * channelDeveloperKey = values[2];
-	if (!avUserIsAdministrator && !avStrIsNullOrWhiteSpace(channelDeveloperKey)
-			&& !avStrEquals(avUserIsAuthor, channelAuthor))
+	if (!avUserIsAdministrator && !pblCgiStrIsNullOrWhiteSpace(channelDeveloperKey)
+			&& !pblCgiStrEquals(avUserIsAuthor, channelAuthor))
 	{
-		if (!avStrEquals(channelDeveloperKey, filter->developerKeyFilter))
+		if (!pblCgiStrEquals(channelDeveloperKey, filter->developerKeyFilter))
 		{
 			return 0;
 		}
@@ -308,8 +308,8 @@ int avCallbackChannelValues(void * callbackPtr, int nColums, char ** values, cha
 		filter->n--;
 	}
 
-	char * key = avSprintf("%d", pblMapSize(filter->map));
-	avSetValueToMap(key, values[0], -1, filter->map);
+	char * key = pblCgiSprintf("%d", pblMapSize(filter->map));
+	pblCgiSetValueToMap(key, values[0], -1, filter->map);
 	PBL_FREE(key);
 
 	return 0;
@@ -322,12 +322,12 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 {
 	if (nColums != 8)
 	{
-		avExitOnError("SQLite callback avCallbackChannelFilteredValues called with %d columns\n", nColums);
+		pblCgiExitOnError("SQLite callback avCallbackChannelFilteredValues called with %d columns\n", nColums);
 	}
 	struct avChannelCallbackFilter * filter = (struct avChannelCallbackFilter *) callbackPtr;
 	if (!filter)
 	{
-		avExitOnError("SQLite callback avCallbackChannelFilteredValues called with no filter\n");
+		pblCgiExitOnError("SQLite callback avCallbackChannelFilteredValues called with no filter\n");
 	}
 
 	// "SELECT location.ID as LOC, POS, channel.ID as ID, channel.CHN as CHN, AUT, DES, DEV, channel.VALS as VALS FROM location "
@@ -337,10 +337,10 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 	char * channelDescription = values[5];
 	char * channelDeveloperKey = values[6];
 
-	if (!avUserIsAdministrator && !avStrIsNullOrWhiteSpace(channelDeveloperKey)
-			&& !avStrEquals(avUserIsAuthor, channelAuthor))
+	if (!avUserIsAdministrator && !pblCgiStrIsNullOrWhiteSpace(channelDeveloperKey)
+			&& !pblCgiStrEquals(avUserIsAuthor, channelAuthor))
 	{
-		if (!avStrEquals(channelDeveloperKey, filter->developerKeyFilter))
+		if (!pblCgiStrEquals(channelDeveloperKey, filter->developerKeyFilter))
 		{
 			return 0;
 		}
@@ -358,7 +358,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 	char * message = avGetLatitude(position, &channelLatitude);
 	if (message)
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("Bad latitude in position '%s'. %s", position, message));
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Bad latitude in position '%s'. %s", position, message));
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
 
@@ -366,7 +366,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 	message = avGetLongitude(position, &channelLongitude);
 	if (message)
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("Bad longitude in position '%s'. %s", position, message));
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Bad longitude in position '%s'. %s", position, message));
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
 
@@ -374,7 +374,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 	message = avGetRadius(position, &channelRadius);
 	if (message)
 	{
-		avSetValue(AV_KEY_REPLY, avSprintf("Bad radius in position '%s'. %s", position, message));
+		pblCgiSetValue(AV_KEY_REPLY, pblCgiSprintf("Bad radius in position '%s'. %s", position, message));
 		avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 	}
 	if (channelRadius < 1)
@@ -442,7 +442,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 
 	if (filter->authorFilter && *(filter->authorFilter))
 	{
-		char * author = avStrDup(channelAuthor);
+		char * author = pblCgiStrDup(channelAuthor);
 		for (ptr = author; *ptr; ptr++)
 		{
 			if (isupper(*ptr))
@@ -460,7 +460,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 
 	if (filter->channelFilter && *(filter->channelFilter))
 	{
-		char * name = avStrDup(channelName);
+		char * name = pblCgiStrDup(channelName);
 		for (ptr = name; *ptr; ptr++)
 		{
 			if (isupper(*ptr))
@@ -478,7 +478,7 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 
 	if (filter->descriptionFilter && *(filter->descriptionFilter))
 	{
-		char * description = avStrDup(channelDescription);
+		char * description = pblCgiStrDup(channelDescription);
 		for (ptr = description; *ptr; ptr++)
 		{
 			if (isupper(*ptr))
@@ -502,28 +502,28 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 	int size = pblHeapSize(filter->list);
 	if (!filter->nearest || size < filter->maxLength - 1)
 	{
-		PblMap * map = avNewMap();
+		PblMap * map = pblCgiNewMap();
 		avCallbackRowValues(&map, nColums, values, headers);
-		ptr = avSprintf("%ld", (long) positionDistance);
-		avSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
+		ptr = pblCgiSprintf("%ld", (long) positionDistance);
+		pblCgiSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
 		PBL_FREE(ptr);
 
 		if (pblListAdd(filter->list, map) < 1)
 		{
-			avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblMap *), pbl_errno, pbl_errstr);
+			pblCgiExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblMap *), pbl_errno, pbl_errstr);
 		}
 	}
 	else if (size == filter->maxLength - 1)
 	{
-		PblMap * map = avNewMap();
+		PblMap * map = pblCgiNewMap();
 		avCallbackRowValues(&map, nColums, values, headers);
-		ptr = avSprintf("%ld", (long) positionDistance);
-		avSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
+		ptr = pblCgiSprintf("%ld", (long) positionDistance);
+		pblCgiSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
 		PBL_FREE(ptr);
 
 		if (pblListAdd(filter->list, map) < 1)
 		{
-			avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblMap *), pbl_errno, pbl_errstr);
+			pblCgiExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblMap *), pbl_errno, pbl_errstr);
 		}
 		pblHeapConstruct(filter->list);
 	}
@@ -533,10 +533,10 @@ int avCallbackChannelFilteredValues(void * callbackPtr, int nColums, char ** val
 		long furthestDistance = atol(pblMapGetStr(furthest, AV_KEY_DISTANCE));
 		if (positionDistance < furthestDistance)
 		{
-			PblMap * map = avNewMap();
+			PblMap * map = pblCgiNewMap();
 			avCallbackRowValues(&map, nColums, values, headers);
-			ptr = avSprintf("%ld", (long) positionDistance);
-			avSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
+			ptr = pblCgiSprintf("%ld", (long) positionDistance);
+			pblCgiSetValueToMap(AV_KEY_DISTANCE, ptr, -1, map);
 			PBL_FREE(ptr);
 
 			pblListSetFirst(filter->list, map);
@@ -556,7 +556,7 @@ int avDbChannelsListByName(int offset, int n)
 {
 	struct avChannelCallbackFilter filter;
 	filter.developerKeyFilter = "";
-	filter.map = avNewMap();
+	filter.map = pblCgiNewMap();
 	filter.n = n;
 	filter.offset = offset;
 
@@ -569,7 +569,7 @@ int avDbChannelsListByName(int offset, int n)
 
 	for (int i = 0; i >= 0; i++)
 	{
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(filter.map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -579,7 +579,7 @@ int avDbChannelsListByName(int offset, int n)
 		avDbChannelSetValuesForIteration(value, iteration++, NULL);
 	}
 
-	avMapFree(filter.map);
+	pblCgiMapFree(filter.map);
 	return iteration;
 }
 
@@ -592,7 +592,7 @@ int avDbChannelsListByAuthor(int offset, int n, char * author)
 {
 	struct avChannelCallbackFilter filter;
 	filter.developerKeyFilter = "";
-	filter.map = avNewMap();
+	filter.map = pblCgiNewMap();
 	filter.n = n;
 	filter.offset = offset;
 
@@ -615,7 +615,7 @@ int avDbChannelsListByAuthor(int offset, int n, char * author)
 
 	for (int i = 0; i >= 0; i++)
 	{
-		char * key = avSprintf("%d", i);
+		char * key = pblCgiSprintf("%d", i);
 		char * value = pblMapGetStr(filter.map, key);
 		PBL_FREE(key);
 		if (!value)
@@ -625,7 +625,7 @@ int avDbChannelsListByAuthor(int offset, int n, char * author)
 		avDbChannelSetValuesForIteration(value, iteration++, NULL);
 	}
 
-	avMapFree(filter.map);
+	pblCgiMapFree(filter.map);
 	return iteration;
 }
 
@@ -653,7 +653,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 	PblHeap * list = pblHeapNew();
 	if (!list)
 	{
-		avExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblHeap), pbl_errno, pbl_errstr);
+		pblCgiExitOnError("Failed to allocate %u bytes, pbl_errno %d, '%s'", sizeof(PblHeap), pbl_errno, pbl_errstr);
 	}
 	pblHeapSetCompareFunction(list, avDbChannelMapCompareFunction);
 
@@ -661,7 +661,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 
 	if (authorFilter && *authorFilter)
 	{
-		authorFilter = avStrDup(authorFilter);
+		authorFilter = pblCgiStrDup(authorFilter);
 		for (ptr = authorFilter; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -670,7 +670,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 
 	if (channelFilter && *channelFilter)
 	{
-		channelFilter = avStrDup(channelFilter);
+		channelFilter = pblCgiStrDup(channelFilter);
 		for (ptr = channelFilter; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -679,7 +679,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 
 	if (descriptionFilter && *descriptionFilter)
 	{
-		descriptionFilter = avStrDup(descriptionFilter);
+		descriptionFilter = pblCgiStrDup(descriptionFilter);
 		for (ptr = descriptionFilter; *ptr; ptr++)
 		{
 			*ptr = tolower(*ptr);
@@ -692,7 +692,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 		char * message = avGetLongitude(lon, &longitude);
 		if (message)
 		{
-			avSetValue(AV_KEY_REPLY, message);
+			pblCgiSetValue(AV_KEY_REPLY, message);
 			avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 		}
 	}
@@ -703,7 +703,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 		char * message = avGetLatitude(lat, &latitude);
 		if (message)
 		{
-			avSetValue(AV_KEY_REPLY, message);
+			pblCgiSetValue(AV_KEY_REPLY, message);
 			avPrintTemplate(avTemplateDirectory, "index.html", "text/html");
 		}
 	}
@@ -720,7 +720,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 			minLatitude = minLatitude + 100.;
 		}
 
-		char * searchMinLatitude = avSprintf("%s%09.6f\t", filler, minLatitude);
+		char * searchMinLatitude = pblCgiSprintf("%s%09.6f\t", filler, minLatitude);
 
 		filler = "";
 		double maxLatitude = latitude + 0.1;
@@ -730,7 +730,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 			maxLatitude = maxLatitude + 100.;
 		}
 
-		char * searchMaxLatitude = avSprintf("%s%09.6f\t", filler, maxLatitude);
+		char * searchMaxLatitude = pblCgiSprintf("%s%09.6f\t", filler, maxLatitude);
 
 		sql =
 				sqlite3_mprintf(
@@ -754,7 +754,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 	struct avChannelCallbackFilter filter;
 
 	filter.developerKeyFilter = developerKeyFilter;
-	filter.map = avNewMap();
+	filter.map = pblCgiNewMap();
 	filter.list = list;
 	filter.n = n;
 	filter.maxLength = n;

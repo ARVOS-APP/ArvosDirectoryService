@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avCgi.c,v $
+ Revision 1.6  2018/03/11 00:34:52  peter
+ Integration with pbl cgi code.
+
  Revision 1.5  2016/12/03 00:03:54  peter
  Cleanup after tests
 
@@ -31,7 +34,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avCgi_c_id = "$Id: avCgi.c,v 1.5 2016/12/03 00:03:54 peter Exp $";
+char * avCgi_c_id = "$Id: avCgi.c,v 1.6 2018/03/11 00:34:52 peter Exp $";
 
 #ifdef WIN32
 
@@ -63,13 +66,7 @@ char * avCgi_c_id = "$Id: avCgi.c,v 1.5 2016/12/03 00:03:54 peter Exp $";
 /*****************************************************************************/
 /* #defines                                                                  */
 /*****************************************************************************/
-#define AV_MAX_SIZE_OF_BUFFER_ON_STACK		(4 * 1024)
-#define AV_MAX_KEY_LENGTH			        64
-#define AV_MAX_QUERY_PARAMETERS_COUNT	    128
-#define AV_MAX_POST_INPUT_LEN               (1024 * 1024)
 #define AV_MAX_DIGEST_LEN                   32
-
-#define AV_DATE_LEN                         14
 
 /*****************************************************************************/
 /* Variables                                                                 */
@@ -1104,13 +1101,14 @@ PblMap * avDataStrToMap(PblMap * map, char * buffer)
 		map = pblCgiNewMap();
 	}
 
-	char * keyValuePairs[PBL_CGI_MAX_LINE_LENGTH + 1];
+	char * listItem;
 	char * keyValuePair[2 + 1];
+	PblList * keyValuePairs = pblCgiStrSplitToList(buffer, "\t");
 
-	pblCgiStrSplit(buffer, "\t", PBL_CGI_MAX_LINE_LENGTH, keyValuePairs);
-	for (int i = 0; keyValuePairs[i]; i++)
+	while (!pblListIsEmpty(keyValuePairs))
 	{
-		pblCgiStrSplit(keyValuePairs[i], "=", 2, keyValuePair);
+		listItem = (char *)pblListPop(keyValuePairs);
+		pblCgiStrSplit(listItem, "=", 2, keyValuePair);
 		if (keyValuePair[0] && keyValuePair[1] && !keyValuePair[2])
 		{
 			if (pblMapAddStrStr(map, keyValuePair[0], keyValuePair[1]) < 0)
@@ -1122,7 +1120,9 @@ PblMap * avDataStrToMap(PblMap * map, char * buffer)
 
 		PBL_FREE(keyValuePair[0]);
 		PBL_FREE(keyValuePair[1]);
-		PBL_FREE(keyValuePairs[i]);
+		PBL_FREE(listItem);
 	}
+	pblListFree(keyValuePairs);
+
 	return map;
 }

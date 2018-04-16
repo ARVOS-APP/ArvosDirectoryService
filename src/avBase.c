@@ -399,14 +399,22 @@ char * avCheckNameAndPassword(char * name, char * password)
 	PblMap * map = avDbAuthorGetByName(name);
 	if (!map)
 	{
+#ifdef WIN32
+		_sleep(5000);
+#else
 		sleep(5);
+#endif
 		return "Login failed.";
 	}
 
 	char * authorPassword = pblMapGetStr(map, AV_KEY_PASSWORD);
 	if (!authorPassword || !avCheckPassword(password, authorPassword))
 	{
+#ifdef WIN32
+		_sleep(5000);
+#else
 		sleep(5);
+#endif
 		return "Login failed.";
 	}
 
@@ -428,7 +436,11 @@ char * avCheckNameAndPasswordAndLogin(char * name, char * password)
 	PblMap * map = avDbAuthorGetByName(name);
 	if (!map)
 	{
+#ifdef WIN32
+		_sleep(5000);
+#else
 		sleep(5);
+#endif
 		return "Login failed.";
 	}
 

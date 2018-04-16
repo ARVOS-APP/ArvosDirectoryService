@@ -31,9 +31,9 @@
 
  */
 
-/*
- * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
- */
+ /*
+  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
+  */
 char * avCgi_c_id = "$Id: avCgi.c,v 1.6 2018/03/11 00:34:52 peter Exp $";
 
 #ifdef WIN32
@@ -83,7 +83,7 @@ char * pblCgiValueIncrement = "i++";
 /**
  * Wrapper for sqlite3_exec
  */
-void avSqlExec(char * statement, int (*callback)(void*, int, char**, char**), void * parameter)
+void avSqlExec(char * statement, int(*callback)(void*, int, char**, char**), void * parameter)
 {
 	if (!statement)
 	{
@@ -111,7 +111,7 @@ void avSqlExec(char * statement, int (*callback)(void*, int, char**, char**), vo
  */
 int avCallbackCounter(void * ptr, int nColums, char ** values, char ** headers)
 {
-	int * counter = (int *) ptr;
+	int * counter = (int *)ptr;
 	if (counter)
 	{
 		*counter += 1;
@@ -128,7 +128,7 @@ int avCallbackCellValue(void * ptr, int nColums, char ** values, char ** headers
 	{
 		pblCgiExitOnError("SQLite callback avCallbackCellValue called with %d columns\n", nColums);
 	}
-	char ** cellValue = (char **) ptr;
+	char ** cellValue = (char **)ptr;
 	if (cellValue)
 	{
 		*cellValue = pblCgiStrDup(values[0]);
@@ -145,7 +145,7 @@ int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** headers
 	{
 		pblCgiExitOnError("SQLite callback avCallbackRowValues called with %d columns\n", nColums);
 	}
-	PblMap ** mapPtr = (PblMap **) ptr;
+	PblMap ** mapPtr = (PblMap **)ptr;
 	if (mapPtr)
 	{
 		for (int i = 0; i < nColums; i++)
@@ -172,7 +172,7 @@ int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** head
 	{
 		pblCgiExitOnError("SQLite callback avCallbackColumnValues called with %d columns\n", nColums);
 	}
-	PblMap ** mapPtr = (PblMap **) ptr;
+	PblMap ** mapPtr = (PblMap **)ptr;
 	if (mapPtr)
 	{
 		char * key = pblCgiSprintf("%d", pblMapSize(*mapPtr));
@@ -192,7 +192,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	//
 
 	char * filePath = pblCgiStrCat(databasePath, "arvos.sqlite");
-	if ( SQLITE_OK != sqlite3_open(filePath, &avSqliteDb))
+	if (SQLITE_OK != sqlite3_open(filePath, &avSqliteDb))
 	{
 		if (!avSqliteDb)
 		{
@@ -210,7 +210,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	if (count == 0)
 	{
 		char * create =
-				"CREATE TABLE session ( ID INTEGER PRIMARY KEY, COK TEXT UNIQUE, TLA TEXT, AUT TEXT, VALS TEXT );";
+			"CREATE TABLE session ( ID INTEGER PRIMARY KEY, COK TEXT UNIQUE, TLA TEXT, AUT TEXT, VALS TEXT );";
 
 		avSqlExec(create, NULL, NULL);
 		avSqlExec(sql, avCallbackCounter, &count);
@@ -229,7 +229,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	if (count == 0)
 	{
 		char * create =
-				"CREATE TABLE author ( ID INTEGER PRIMARY KEY, NAM TEXT UNIQUE, EML TEXT, TAC TEXT, VALS TEXT );";
+			"CREATE TABLE author ( ID INTEGER PRIMARY KEY, NAM TEXT UNIQUE, EML TEXT, TAC TEXT, VALS TEXT );";
 
 		avSqlExec(create, NULL, NULL);
 		avSqlExec(sql, avCallbackCounter, &count);
@@ -248,7 +248,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	if (count == 0)
 	{
 		char * create =
-				"CREATE TABLE channel ( ID INTEGER PRIMARY KEY, CHN TEXT UNIQUE, AUT TEXT, DES TEXT, DEV TEXT, VALS TEXT );";
+			"CREATE TABLE channel ( ID INTEGER PRIMARY KEY, CHN TEXT UNIQUE, AUT TEXT, DES TEXT, DEV TEXT, VALS TEXT );";
 
 		avSqlExec(create, NULL, NULL);
 		avSqlExec(sql, avCallbackCounter, &count);
@@ -267,7 +267,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	if (count == 0)
 	{
 		char * create = "CREATE TABLE location ( ID INTEGER PRIMARY KEY, CHN TEXT, POS TEXT, VALS TEXT ); "
-				"CREATE INDEX location_POS_index ON location(POS);";
+			"CREATE INDEX location_POS_index ON location(POS);";
 
 		avSqlExec(create, NULL, NULL);
 		avSqlExec(sql, avCallbackCounter, &count);
@@ -284,7 +284,7 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 
 #ifdef WIN32
 
-		errno_t err = fopen_s(&stream, filePath, "r");
+		errno_t err = fopen_s(&stream, traceFilePath, "r");
 		if (err != 0)
 		{
 			return;
@@ -329,6 +329,37 @@ char * avGetCoockie()
 
 #ifndef ARVOS_CRYPTOLOGIC_RANDOM
 
+#ifdef WIN32
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdint.h> // portable: uint64_t   MSVC: __int64 
+
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	// Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+	// This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
+	// until 00:00:00 January 1, 1970 
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+	return 0;
+}
+
+extern int getpid();
+
+#endif
+
 static int avRandomFirst = 1;
 
 unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
@@ -339,17 +370,17 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 
 		struct timeval now;
 		gettimeofday(&now, NULL);
-		srand(now.tv_sec ^ now.tv_usec ^ getpid());
-	}
-	if (!rand() % 10)
-	{
-		struct timeval now;
-		gettimeofday(&now, NULL);
 		srand(rand() ^ now.tv_sec ^ now.tv_usec ^ getpid());
 	}
 
 	for (unsigned int i = 0; i < length; i++)
 	{
+		if (rand() % 10 == 0)
+		{
+			struct timeval now;
+			gettimeofday(&now, NULL);
+			srand(rand() ^ now.tv_sec ^ now.tv_usec ^ getpid());
+		}
 		buffer[i] = rand() % 0xff;
 	}
 	return buffer;
@@ -367,7 +398,7 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 #ifdef WIN32
 
 	unsigned int number;
-	unsigned char * ptr = (unsigned char *) &number;
+	unsigned char * ptr = (unsigned char *)&number;
 
 	for (unsigned int i = 0; i < length;)
 	{
@@ -393,7 +424,7 @@ unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 		if (result < 0)
 		{
 			pblCgiExitOnError("%s: unable to read /dev/random, errno=%d\n", tag,
-					errno);
+				errno);
 		}
 		randomDataLen += result;
 	}
@@ -447,12 +478,12 @@ static void convert_to_bigendian(void* data, int len)
 {
 	/* test endianness */
 	unsigned int test_value = 0x01;
-	unsigned char* test_as_bytes = (unsigned char*) &test_value;
+	unsigned char* test_as_bytes = (unsigned char*)&test_value;
 	int little_endian = test_as_bytes[0];
 
 	unsigned int temp;
-	unsigned char* temp_as_bytes = (unsigned char*) &temp;
-	unsigned int* data_as_words = (unsigned int*) data;
+	unsigned char* temp_as_bytes = (unsigned char*)&temp;
+	unsigned int* data_as_words = (unsigned int*)data;
 	unsigned char* data_as_bytes;
 	int i;
 
@@ -559,19 +590,19 @@ static void avSha256_update(avSha256_ctx_t* ctx, const void* vdata, unsigned int
 
 	/* deal with first block */
 
-	use = (unsigned int) (Sha256_min((unsigned int )(64 - ctx->mlen), data_len));
+	use = (unsigned int)(Sha256_min((unsigned int)(64 - ctx->mlen), data_len));
 	memcpy(ctx->M + ctx->mlen, data, use);
-	ctx->mlen += (unsigned char) use;
+	ctx->mlen += (unsigned char)use;
 	data_len -= use;
 	data += use;
 
 	while (ctx->mlen == 64)
 	{
-		convert_to_bigendian((unsigned int*) ctx->M, 64);
+		convert_to_bigendian((unsigned int*)ctx->M, 64);
 		Sha256_transform(ctx);
 		use = Sha256_min(64, data_len);
 		memcpy(ctx->M, data, use);
-		ctx->mlen = (unsigned char) use;
+		ctx->mlen = (unsigned char)use;
 		data_len -= use;
 		data += use;
 	}
@@ -596,7 +627,7 @@ static void avSha256_final(avSha256_ctx_t* ctx)
 		memset(ctx->M, 0x00, 56);
 	}
 
-	memcpy(ctx->M + 56, (void*) (&(ctx->hbits)), 8);
+	memcpy(ctx->M + 56, (void*)(&(ctx->hbits)), 8);
 	Sha256_transform(ctx);
 }
 
@@ -666,13 +697,13 @@ static char * avReplaceLowerThan(char * string, char *ptr2)
 		size_t length = ptr2 - ptr;
 		if (length > 0)
 		{
-			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t) -1))
+			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t)-1))
 			{
 				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
 		}
 
-		if (pblStringBuilderAppendStr(stringBuilder, "&lt;") == ((size_t) -1))
+		if (pblStringBuilderAppendStr(stringBuilder, "&lt;") == ((size_t)-1))
 		{
 			pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 		}
@@ -680,7 +711,7 @@ static char * avReplaceLowerThan(char * string, char *ptr2)
 		ptr2 = strstr(ptr, "<");
 		if (!ptr2)
 		{
-			if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t) -1))
+			if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t)-1))
 			{
 				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
@@ -757,7 +788,7 @@ static char * avReplaceVariable(char * string, int iteration)
 
 	if (length > 0)
 	{
-		if (pblStringBuilderAppendStrN(stringBuilder, length, string) == ((size_t) -1))
+		if (pblStringBuilderAppendStrN(stringBuilder, length, string) == ((size_t)-1))
 		{
 			pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 		}
@@ -770,7 +801,7 @@ static char * avReplaceVariable(char * string, int iteration)
 		length = ptr2 - ptr;
 		if (length > 0)
 		{
-			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t) -1))
+			if (pblStringBuilderAppendStrN(stringBuilder, length, ptr) == ((size_t)-1))
 			{
 				pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 			}
@@ -806,7 +837,7 @@ static char * avReplaceVariable(char * string, int iteration)
 			char * pointer = strstr(value, "<");
 			if (!pointer)
 			{
-				if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t) -1))
+				if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t)-1))
 				{
 					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
@@ -816,7 +847,7 @@ static char * avReplaceVariable(char * string, int iteration)
 				value = avReplaceLowerThan(value, pointer);
 				if (value && *value)
 				{
-					if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t) -1))
+					if (pblStringBuilderAppendStr(stringBuilder, value) == ((size_t)-1))
 					{
 						pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 					}
@@ -831,7 +862,7 @@ static char * avReplaceVariable(char * string, int iteration)
 			ptr2 = strstr(ptr, startPattern2);
 			if (!ptr2)
 			{
-				if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t) -1))
+				if (pblStringBuilderAppendStr(stringBuilder, ptr) == ((size_t)-1))
 				{
 					pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
 				}
@@ -1026,7 +1057,7 @@ PblMap * avUpdateData(PblMap * map, char ** keys, char ** values)
 				if (pblMapAddStrStr(map, keys[i], value) < 0)
 				{
 					pblCgiExitOnError("%s: Failed to save string '%s', value '%s' in the map, pbl_errno %d\n", tag, keys[i],
-							value, pbl_errno);
+						value, pbl_errno);
 				}
 				PBL_FREE(value);
 			}
@@ -1112,7 +1143,7 @@ PblMap * avDataStrToMap(PblMap * map, char * buffer)
 			if (pblMapAddStrStr(map, keyValuePair[0], keyValuePair[1]) < 0)
 			{
 				pblCgiExitOnError("%s: Failed to save string '%s' in the map, pbl_errno %d\n", tag, keyValuePair[0],
-						pbl_errno);
+					pbl_errno);
 			}
 		}
 

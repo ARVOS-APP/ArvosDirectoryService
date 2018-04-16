@@ -265,7 +265,12 @@ static int actionActivate()
 
 	if (!pblCgiStrEquals(activationCode, dbActivationCode))
 	{
+#ifdef WIN32
+		_sleep(3000);
+#else
 		sleep(3);
+#endif
+
 		pblCgiSetValue(AV_KEY_REPLY, "Bad activation code.");
 		avPrintTemplate(avTemplateDirectory, "activate.html", "text/html");
 	}
@@ -576,6 +581,12 @@ static void actionListSessions()
 	avPrintTemplate(avTemplateDirectory, "sessionList.html", "text/html");
 }
 
+#ifdef WIN32
+
+extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
+
+#endif
+
 int main(int argc, char * argv[])
 {
 	struct timeval startTime;
@@ -587,7 +598,9 @@ int main(int argc, char * argv[])
 
 	avTemplateDirectory = avConfigValue(AV_TEMPLATE_DIRECTORY, "../templates/");
 
-	avInit(&startTime, avConfigValue(PBL_CGI_TRACE_FILE, ""), avConfigValue(AV_DATABASE_DIRECTORY, "../database/"));
+	char * traceFile = avConfigValue(PBL_CGI_TRACE_FILE, "");
+	char * databaseDirectory = avConfigValue(AV_DATABASE_DIRECTORY, "../database/");
+	avInit(&startTime, traceFile, databaseDirectory);
 
 	pblCgiParseQuery(argc, argv);
 

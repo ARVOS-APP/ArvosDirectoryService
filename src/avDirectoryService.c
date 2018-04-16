@@ -581,7 +581,7 @@ int main(int argc, char * argv[])
 	struct timeval startTime;
 	gettimeofday(&startTime, NULL);
 
-	avConfigMap = pblCgiFileToMap(NULL, "./config/arvosconfig.txt");
+	avConfigMap = pblCgiFileToMap(NULL, "../config/arvosconfig.txt");
 
 	avSetAdministratorNames();
 

@@ -72,8 +72,6 @@ char * avCgi_c_id = "$Id: avCgi.c,v 1.6 2018/03/11 00:34:52 peter Exp $";
 /* Variables                                                                 */
 /*****************************************************************************/
 
-static struct timeval avStartTime;
-
 sqlite3 * avSqliteDb = NULL;
 
 char * pblCgiValueIncrement = "i++";
@@ -186,7 +184,7 @@ int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** head
 
 void avInit(struct timeval * startTime, char * traceFilePath, char * databasePath)
 {
-	avStartTime = *startTime;
+	pblCgiStartTime = *startTime;
 
 	//
 	// sqlite link object sqlite3.o was created with command:

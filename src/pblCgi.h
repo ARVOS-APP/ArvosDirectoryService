@@ -26,8 +26,11 @@
  please see: http://www.mission-base.com/.
 
 $Log: pblCgi.h,v $
-Revision 1.1  2018/03/11 00:33:24  peter
-Added new file
+Revision 1.29  2018/04/07 19:32:05  peter
+Re-added function that is needed
+
+Revision 1.28  2018/04/07 18:52:34  peter
+Cleanup
 
 Revision 1.27  2018/03/10 21:49:22  peter
 Integration with ArvosDirectoryService
@@ -79,6 +82,7 @@ extern "C"
 	/* Variable declarations                                                     */
 	/*****************************************************************************/
 
+	extern struct timeval pblCgiStartTime;
 	extern FILE * pblCgiTraceFile;
 	extern char * pblCgiValueIncrement;
 

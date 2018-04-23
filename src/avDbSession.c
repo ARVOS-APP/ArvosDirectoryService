@@ -64,7 +64,9 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 {
 	char * expirationTime = pblCgiStrFromTime(time(NULL) - (60 * 60));
 	unsigned char bufferForRandomBytes[32];
-	char * cookie = pblCgiStrToHexFromBuffer(avRandomBytes(bufferForRandomBytes, 32), 32);
+
+	avRandomBytes(bufferForRandomBytes, sizeof(bufferForRandomBytes));
+	char * cookie = pblCgiStrToHexFromBuffer(bufferForRandomBytes, sizeof(bufferForRandomBytes));
 	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s < %Q; ", AV_KEY_ID, AV_KEY_TIME_LAST_ACCESS,
@@ -95,7 +97,8 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 		if (count > 0)
 		{
 			PBL_FREE(cookie);
-			cookie = pblCgiStrToHexFromBuffer(avRandomBytes(bufferForRandomBytes, 32), 32);
+			avRandomBytes(bufferForRandomBytes, sizeof(bufferForRandomBytes));
+			cookie = pblCgiStrToHexFromBuffer(bufferForRandomBytes, sizeof(bufferForRandomBytes));
 			continue;
 		}
 		break;

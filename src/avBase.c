@@ -98,19 +98,13 @@ char * avRandomCode(size_t length)
 		avNumberOfCodeChars = strlen(avCodeChars);
 	}
 
-	unsigned char * buffer = pbl_malloc(NULL, length + 1);
-	if (!buffer)
-	{
-		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	avRandomBytes(buffer, length);
-
+	unsigned char * bufferForRandomBytes = avMallocRandomBytes(tag, length + 1);
 	for (unsigned int i = 0; i < length; i++)
 	{
-		buffer[i] = avCodeChars[buffer[i] % avNumberOfCodeChars];
+		bufferForRandomBytes[i] = avCodeChars[bufferForRandomBytes[i] % avNumberOfCodeChars];
 	}
-	buffer[length] = '\0';
-	return (char*) buffer;
+	bufferForRandomBytes[length] = '\0';
+	return (char*) bufferForRandomBytes;
 }
 
 /**
@@ -119,19 +113,14 @@ char * avRandomCode(size_t length)
 char * avRandomIntCode(size_t length)
 {
 	static char * tag = "avRandomIntCode";
-	unsigned char * buffer = pbl_malloc(NULL, length + 1);
-	if (!buffer)
-	{
-		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	avRandomBytes(buffer, length);
 
+	unsigned char * bufferForRandomBytes = avMallocRandomBytes(tag, length + 1);
 	for (unsigned int i = 0; i < length; i++)
 	{
-		buffer[i] = '0' + (buffer[i] % 10);
+		bufferForRandomBytes[i] = '0' + (bufferForRandomBytes[i] % 10);
 	}
-	buffer[length] = '\0';
-	return (char*) buffer;
+	bufferForRandomBytes[length] = '\0';
+	return (char*) bufferForRandomBytes;
 }
 
 /**
@@ -140,27 +129,22 @@ char * avRandomIntCode(size_t length)
 char * avRandomHexCode(size_t length)
 {
 	static char * tag = "avRandomHexCode";
-	unsigned char * buffer = pbl_malloc(NULL, length + 1);
-	if (!buffer)
-	{
-		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
-	}
-	avRandomBytes(buffer, length);
 
+	unsigned char * bufferForRandomBytes = avMallocRandomBytes(tag, length + 1);
 	for (unsigned int i = 0; i < length; i++)
 	{
-		int c = buffer[i] % 16;
+		int c = bufferForRandomBytes[i] % 16;
 		if (c < 10)
 		{
-			buffer[i] = '0' + c;
+			bufferForRandomBytes[i] = '0' + c;
 		}
 		else
 		{
-			buffer[i] = 'a' + c - 10;
+			bufferForRandomBytes[i] = 'a' + c - 10;
 		}
 	}
-	buffer[length] = '\0';
-	return (char*) buffer;
+	bufferForRandomBytes[length] = '\0';
+	return (char*) bufferForRandomBytes;
 }
 
 /**
@@ -224,9 +208,9 @@ static int avCheckPassword(char * password, char * hashedPassword)
  */
 char * avHashPassword(char * password)
 {
-	unsigned char buffer[32];
-	avRandomBytes(buffer, 32);
-	char * salt = pblCgiStrToHexFromBuffer(buffer, 32);
+	unsigned char bufferForRandomBytes[32];
+	avRandomBytes(bufferForRandomBytes, sizeof(bufferForRandomBytes));
+	char * salt = pblCgiStrToHexFromBuffer(bufferForRandomBytes, sizeof(bufferForRandomBytes));
 
 	char * saltedPassword = pblCgiStrCat(salt, password);
 	char * hash = avSha256AsHexString((unsigned char*) saltedPassword, strlen(saltedPassword));

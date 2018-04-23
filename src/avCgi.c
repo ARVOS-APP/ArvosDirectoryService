@@ -316,6 +316,20 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	}
 }
 
+unsigned char * avMallocRandomBytes(char * tag, size_t length)
+{
+	if (!tag)
+	{
+		tag = "avMallocRandomBytes";
+	}
+	unsigned char * bufferForRandomBytes = pbl_malloc(tag, length + 1);
+	if (!bufferForRandomBytes)
+	{
+		pblCgiExitOnError("%s: pbl_errno = %d, message='%s'\n", tag, pbl_errno, pbl_errstr);
+	}
+	return avRandomBytes(bufferForRandomBytes, length);
+}
+
 #ifndef ARVOS_CRYPTOLOGIC_RANDOM
 
 #ifdef WIN32

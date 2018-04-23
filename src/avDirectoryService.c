@@ -99,7 +99,7 @@ static int actionLogout()
 {
 	if (avUserIsLoggedIn)
 	{
-		char * cookie = pblCgiValue(AV_COOKIE);
+		char * cookie = pblCgiValue(PBL_CGI_COOKIE);
 		if (cookie && *cookie)
 		{
 			avSessionDeleteByCookie(cookie);
@@ -112,9 +112,9 @@ static int actionLogout()
 	avSessionId = NULL;
 
 	pblCgiClearValues();
-	pblCgiSetValue(AV_COOKIE, "X");
-	pblCgiSetValue(AV_COOKIE_PATH, "/");
-	pblCgiSetValue(AV_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
+	pblCgiSetValue(PBL_CGI_COOKIE, "X");
+	pblCgiSetValue(PBL_CGI_COOKIE_PATH, "/");
+	pblCgiSetValue(PBL_CGI_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
 
 	avPrintTemplate(avTemplateDirectory, "login.html", "text/html");
 
@@ -521,7 +521,7 @@ static void actionCheckLogin(int forceLogin)
 		return;
 	}
 
-	char * cookie = avGetCoockie();
+	char * cookie = pblCgiGetCoockie(pblCgiCookieKey, pblCgiCookieTag);
 	if (cookie && *cookie)
 	{
 		avCheckCookie(cookie);

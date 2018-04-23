@@ -61,15 +61,19 @@ extern "C"
 /*****************************************************************************/
 /* #defines                                                                  */
 /*****************************************************************************/
-#define AV_COOKIE                         "AV_COOKIE"
-#define AV_COOKIE_PATH                    "AV_COOKIE_PATH"
-#define AV_COOKIE_DOMAIN                  "AV_COOKIE_DOMAIN"
+
+#define PBL_CGI_COOKIE                         "PBL_CGI_COOKIE"
+#define PBL_CGI_COOKIE_PATH                    "PBL_CGI_COOKIE_PATH"
+#define PBL_CGI_COOKIE_DOMAIN                  "PBL_CGI_COOKIE_DOMAIN"
 
 /*****************************************************************************/
 /* Variable declarations                                                     */
 /*****************************************************************************/
 
 extern sqlite3 * avSqliteDb;
+
+extern char * pblCgiCookieKey;
+extern char * pblCgiCookieTag;
 
 /*****************************************************************************/
 /* Function declarations                                                     */
@@ -82,8 +86,6 @@ extern int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** 
 extern int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** headers);
 
 extern void avInit(struct timeval * startTime, char * traceFilePath, char * databasePath);
-
-extern char * avGetCoockie();
 
 extern unsigned char * avRandomBytes(unsigned char * buffer, size_t length);
 

@@ -316,17 +316,6 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	}
 }
 
-static char * avCookieKey = AV_COOKIE;
-static char * avCookieTag = AV_COOKIE "=";
-
-/**
- * Get the cookie, if any is given.
- */
-char * avGetCoockie()
-{
-	return pblCgiGetCoockie(avCookieKey, avCookieTag);
-}
-
 #ifndef ARVOS_CRYPTOLOGIC_RANDOM
 
 #ifdef WIN32

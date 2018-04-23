@@ -279,9 +279,9 @@ static void avLoginUser(char* name, char* authorId, char* timeActivated, char* e
 	pblCgiSetValue(AV_KEY_USER_ID, avUserId);
 	pblCgiSetValue(AV_KEY_USER_NAME, avUserIsLoggedIn);
 	pblCgiSetValue(AV_KEY_USER_EMAIL, email);
-	pblCgiSetValue(AV_COOKIE, cookie);
-	pblCgiSetValue(AV_COOKIE_PATH, "/");
-	pblCgiSetValue(AV_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
+	pblCgiSetValue(PBL_CGI_COOKIE, cookie);
+	pblCgiSetValue(PBL_CGI_COOKIE_PATH, "/");
+	pblCgiSetValue(PBL_CGI_COOKIE_DOMAIN, pblCgiGetEnv("SERVER_NAME"));
 }
 
 /**

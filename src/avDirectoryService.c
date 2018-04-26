@@ -581,12 +581,6 @@ static void actionListSessions()
 	avPrintTemplate(avTemplateDirectory, "sessionList.html", "text/html");
 }
 
-#ifdef WIN32
-
-extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
-
-#endif
-
 int main(int argc, char * argv[])
 {
 	struct timeval startTime;

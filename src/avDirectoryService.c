@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avDirectoryService.c,v $
+ Revision 1.5  2018/04/26 14:27:36  peter
+ Working on the service
+
  Revision 1.4  2018/03/11 00:34:52  peter
  Integration with pbl cgi code.
 
@@ -40,7 +43,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.4 2018/03/11 00:34:52 peter Exp $";
+char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.5 2018/04/26 14:27:36 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

@@ -95,6 +95,8 @@ void avSqlExec(char * statement, int(*callback)(void*, int, char**, char**), voi
 
 	char * message = NULL;
 
+	PBL_CGI_TRACE("SQL=%s", statement);
+
 	if (SQLITE_OK != sqlite3_exec(avSqliteDb, statement, callback, parameter, &message))
 	{
 		if (message)

@@ -212,9 +212,17 @@ int actionEditChannel()
 		avPrintTemplate(avTemplateDirectory, "channel.html", "text/html");
 	}
 
+	if (!*url)
+	{
+		if (pblCgiStrEquals("Yes", pblCgiQueryValue(AV_KEY_CONFIRM)))
+		{
+			pblCgiSetValue(AV_KEY_REPLY, "You need to enter the url to retrieve the augments.");
+		}
+		avPrintTemplate(avTemplateDirectory, "channel.html", "text/html");
+	}
 	if (strlen(url) > AV_MAX_URL_LENGTH)
 	{
-		pblCgiSetValue(AV_KEY_REPLY, "The url given is too long, it is longer than 256 characters.");
+		pblCgiSetValue(AV_KEY_REPLY, "The url to retrieve the augments given is too long, it is longer than 256 characters.");
 		avPrintTemplate(avTemplateDirectory, "channel.html", "text/html");
 	}
 

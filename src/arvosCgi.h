@@ -88,7 +88,8 @@ extern int avCallbackCellValue(void * ptr, int nColums, char ** values, char ** 
 extern int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** headers);
 extern int avCallbackColumnValues(void * ptr, int nColums, char ** values, char ** headers);
 
-extern void avInit(struct timeval * startTime, char * traceFilePath, char * databasePath);
+extern void avInitTrace(struct timeval * startTime, char * traceFilePath);
+extern void avInit(char * databasePath);
 
 extern unsigned char * avMallocRandomBytes(char * tag, size_t length);
 extern unsigned char * avRandomBytes(unsigned char * buffer, size_t length);

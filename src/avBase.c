@@ -61,7 +61,6 @@ char * avBase_c_id = "$Id: avBase.c,v 1.6 2018/04/26 14:27:36 peter Exp $";
 /* Variables                                                                 */
 /*****************************************************************************/
 
-PblMap * avConfigMap;
 char * avTemplateDirectory;
 
 char * avUserIsLoggedIn = NULL;
@@ -151,32 +150,11 @@ char * avRandomHexCode(size_t length)
 }
 
 /**
- * Get the value given for the key in the configuration.
- */
-char * avConfigValue(char * key, char * defaultValue)
-{
-	if (!avConfigMap)
-	{
-		pblCgiExitOnError("The configuration file was never read!\n");
-	}
-	if (!key || !*key)
-	{
-		pblCgiExitOnError("Empty key not allowed!\n");
-	}
-	char * value = pblMapGetStr(avConfigMap, key);
-	if (!value)
-	{
-		return defaultValue;
-	}
-	return value;
-}
-
-/**
  * Set the names of the authors that are administrator as defined in the config file.
  */
 void avSetAdministratorNames()
 {
-	avAdministratorNames = pblCgiStrSplitToList(avConfigValue(AV_ADMINISTRATOR_NAMES, ""), ",");
+	avAdministratorNames = pblCgiStrSplitToList(pblCgiConfigValue(AV_ADMINISTRATOR_NAMES, ""), ",");
 	pblListSetCompareFunction(avAdministratorNames, pblCollectionStringCompareFunction);
 }
 

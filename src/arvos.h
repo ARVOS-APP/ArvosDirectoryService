@@ -141,7 +141,6 @@ extern "C"
 /*****************************************************************************/
 /* Global variables                                                          */
 /*****************************************************************************/
-extern PblMap * avConfigMap;
 extern char * avTemplateDirectory;
 
 // These are set to the author name during initialization
@@ -160,7 +159,6 @@ extern char * avNowStr();
 extern char * avRandomCode(size_t length);
 extern char * avRandomIntCode(size_t length);
 extern char * avRandomHexCode(size_t length);
-extern char * avConfigValue(char * key, char * defaultValue);
 extern void avSetAdministratorNames();
 extern void avPrintTemplate(char * directory, char * fileName, char * contentType);
 

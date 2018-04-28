@@ -47,16 +47,16 @@ int main(int argc, char * argv[])
 	struct timeval startTime;
 	gettimeofday(&startTime, NULL);
 
-	avConfigMap = pblCgiFileToMap(NULL, "../config/augmentsconfig.txt");
+	pblCgiConfigMap = pblCgiFileToMap(NULL, "../config/augmentsconfig.txt");
 
 	avSetAdministratorNames();
 
-	avTemplateDirectory = avConfigValue(AV_TEMPLATE_DIRECTORY, "../templates/");
+	avTemplateDirectory = pblCgiConfigValue(AV_TEMPLATE_DIRECTORY, "../templates/");
 
-	char * traceFile = avConfigValue(PBL_CGI_TRACE_FILE, "");
+	char * traceFile = pblCgiConfigValue(PBL_CGI_TRACE_FILE, "");
 	avInitTrace(&startTime, traceFile);
 
-	char * databaseDirectory = avConfigValue(AV_DATABASE_DIRECTORY, "../database/");
+	char * databaseDirectory = pblCgiConfigValue(AV_DATABASE_DIRECTORY, "../database/");
 	avInit(databaseDirectory);
 
 	pblCgiParseQuery(argc, argv);

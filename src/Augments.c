@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
 	avTemplateDirectory = pblCgiConfigValue(AV_TEMPLATE_DIRECTORY, "../templates/");
 
 	char * traceFile = pblCgiConfigValue(PBL_CGI_TRACE_FILE, "");
-	avInitTrace(&startTime, traceFile);
+	pblCgiInitTrace(&startTime, traceFile);
 
 	char * databaseDirectory = pblCgiConfigValue(AV_DATABASE_DIRECTORY, "../database/");
 	avInit(databaseDirectory);

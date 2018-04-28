@@ -77,7 +77,7 @@ char * avDbAuthorInsert(char * name, char * email, char * password)
 	AV_KEY_TIME_ACTIVATED,
 	AV_KEY_VALUES, name, email, AV_NOT_ACTIVATED, dataStr);
 
-	avSqlExec(sql, avCallbackCellValue, &id);
+	avSqlExec(avSqliteDb, sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
 		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
@@ -102,7 +102,7 @@ char * avDbAuthorDelete(char * id, char * name)
 
 	char * sql = sqlite3_mprintf("DELETE FROM author WHERE %s = %Q; ", AV_KEY_ID, id);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 
 	authorId = pblCgiStrDup(id);
@@ -127,7 +127,7 @@ static PblMap * avDbAuthorGetBy(char * key, char * value)
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s FROM author WHERE %s = %Q; ",
 	AV_KEY_ID, AV_KEY_NAME, AV_KEY_EMAIL, AV_KEY_TIME_ACTIVATED, AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	if (pblCgiMapIsEmpty(map))
@@ -163,7 +163,7 @@ void avDbAuthorUpdateColumn(char * key, char * value, char * updateKey, char * u
 {
 	char * sql = sqlite3_mprintf("UPDATE author SET %s = %Q WHERE %s = %Q; ", updateKey, updateValue, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -176,7 +176,7 @@ char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	map = avUpdateData(map, updateKeys, updateValues);
@@ -184,7 +184,7 @@ char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char
 
 	sql = sqlite3_mprintf("UPDATE author SET %s = %Q WHERE %s = %Q; ", AV_KEY_VALUES, data, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 	PBL_FREE(data);
 
@@ -196,7 +196,7 @@ char * avDbAuthorUpdateValues(char * key, char * value, char ** updateKeys, char
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", returnKey, key, value);
-			avSqlExec(sql, avCallbackCellValue, &rPtr);
+			avSqlExec(avSqliteDb, sql, avCallbackCellValue, &rPtr);
 			sqlite3_free(sql);
 		}
 		else
@@ -348,7 +348,7 @@ int avDbAuthorsList(int offset, int n, char * authorFilter, char * emailFilter)
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s FROM author ORDER BY %s ASC; ", AV_KEY_ID, AV_KEY_NAME, AV_KEY_EMAIL,
 	AV_KEY_NAME);
-	avSqlExec(sql, avCallbackAuthorFilteredValues, &filter);
+	avSqlExec(avSqliteDb, sql, avCallbackAuthorFilteredValues, &filter);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)
@@ -378,7 +378,7 @@ int avDbAuthorsListByTimeActivated(int offset, int n, char * timeActivated)
 	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM author WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_TIME_ACTIVATED, timeActivated);
-	avSqlExec(sql, avCallbackColumnValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackColumnValues, &map);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)

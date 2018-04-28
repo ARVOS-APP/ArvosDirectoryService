@@ -1,5 +1,5 @@
 /*
- avDirectoryService.c - main for arvos Common Gateway Interface - CGI - directory service.
+ avDirectoryService.c - main for arvos (Common Gateway Interface - CGI) directory service.
 
  Copyright (C) 2016   Tamiko Thiel and Peter Graf
 

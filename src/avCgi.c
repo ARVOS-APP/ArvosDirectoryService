@@ -86,7 +86,7 @@ char * pblCgiValueIncrement = "i++";
 /**
  * Wrapper for sqlite3_exec
  */
-void avSqlExec(char * statement, int(*callback)(void*, int, char**, char**), void * parameter)
+void avSqlExec (sqlite3 * sqlliteDb, char * statement, int(*callback)(void*, int, char**, char**), void * parameter)
 {
 	if (!statement)
 	{
@@ -97,7 +97,7 @@ void avSqlExec(char * statement, int(*callback)(void*, int, char**, char**), voi
 
 	PBL_CGI_TRACE("SQL=%s", statement);
 
-	if (SQLITE_OK != sqlite3_exec(avSqliteDb, statement, callback, parameter, &message))
+	if (SQLITE_OK != sqlite3_exec(sqlliteDb, statement, callback, parameter, &message))
 	{
 		if (message)
 		{
@@ -210,15 +210,15 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	char * sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='session';";
 	int count = 0;
 
-	avSqlExec(sql, avCallbackCounter, &count);
+	avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 	if (count == 0)
 	{
 		char * create =
 			"CREATE TABLE session ( ID INTEGER PRIMARY KEY, COK TEXT UNIQUE, TLA TEXT, AUT TEXT, VALS TEXT );";
 
-		avSqlExec(create, NULL, NULL);
-		avSqlExec(sql, avCallbackCounter, &count);
+		avSqlExec(avSqliteDb, create, NULL, NULL);
+		avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 		if (count == 0)
 		{
@@ -229,15 +229,15 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='author';";
 	count = 0;
 
-	avSqlExec(sql, avCallbackCounter, &count);
+	avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 	if (count == 0)
 	{
 		char * create =
 			"CREATE TABLE author ( ID INTEGER PRIMARY KEY, NAM TEXT UNIQUE, EML TEXT, TAC TEXT, VALS TEXT );";
 
-		avSqlExec(create, NULL, NULL);
-		avSqlExec(sql, avCallbackCounter, &count);
+		avSqlExec(avSqliteDb, create, NULL, NULL);
+		avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 		if (count == 0)
 		{
@@ -248,15 +248,15 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='channel';";
 	count = 0;
 
-	avSqlExec(sql, avCallbackCounter, &count);
+	avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 	if (count == 0)
 	{
 		char * create =
 			"CREATE TABLE channel ( ID INTEGER PRIMARY KEY, CHN TEXT UNIQUE, AUT TEXT, DES TEXT, DEV TEXT, VALS TEXT );";
 
-		avSqlExec(create, NULL, NULL);
-		avSqlExec(sql, avCallbackCounter, &count);
+		avSqlExec(avSqliteDb, create, NULL, NULL);
+		avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 		if (count == 0)
 		{
@@ -267,15 +267,15 @@ void avInit(struct timeval * startTime, char * traceFilePath, char * databasePat
 	sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='location';";
 	count = 0;
 
-	avSqlExec(sql, avCallbackCounter, &count);
+	avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 	if (count == 0)
 	{
 		char * create = "CREATE TABLE location ( ID INTEGER PRIMARY KEY, CHN TEXT, POS TEXT, VALS TEXT ); "
 			"CREATE INDEX location_POS_index ON location(POS);";
 
-		avSqlExec(create, NULL, NULL);
-		avSqlExec(sql, avCallbackCounter, &count);
+		avSqlExec(avSqliteDb, create, NULL, NULL);
+		avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 
 		if (count == 0)
 		{
@@ -338,6 +338,13 @@ unsigned char * avMallocRandomBytes(char * tag, size_t length)
 #ifndef ARVOS_CRYPTOLOGIC_RANDOM
 
 static int avRandomFirst = 1;
+
+#ifdef WIN32
+
+extern int getpid();
+
+#endif
+
 
 unsigned char * avRandomBytes(unsigned char * buffer, size_t length)
 {

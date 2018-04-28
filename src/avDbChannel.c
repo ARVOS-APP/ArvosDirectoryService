@@ -74,7 +74,7 @@ char * avDbChannelInsert(char * name, char * author, char * description, char * 
 	AV_KEY_DEVELOPER_KEY,
 	AV_KEY_VALUES, name, author, description, developerKey, "", AV_KEY_CHANNEL, name);
 
-	avSqlExec(sql, avCallbackCellValue, &id);
+	avSqlExec(avSqliteDb, sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
 		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
@@ -93,7 +93,7 @@ PblMap * avDbChannelGetBy(char * key, char * value)
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s, %s FROM channel WHERE %s = %Q; ", AV_KEY_ID,
 	AV_KEY_CHANNEL, AV_KEY_AUTHOR, AV_KEY_DESCRIPTION, AV_KEY_DEVELOPER_KEY, AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	if (pblCgiMapIsEmpty(map))
@@ -130,7 +130,7 @@ void avDbChannelUpdateColumn(char * key, char * value, char * updateKey, char * 
 {
 	char * sql = sqlite3_mprintf("UPDATE channel SET %s = %Q WHERE %s = %Q; ", updateKey, updateValue, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -143,7 +143,7 @@ char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM channel WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	map = avUpdateData(map, updateKeys, updateValues);
@@ -151,7 +151,7 @@ char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	sql = sqlite3_mprintf("UPDATE channel SET %s = %Q WHERE %s = %Q; ", AV_KEY_VALUES, data, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 	PBL_FREE(data);
 
@@ -163,7 +163,7 @@ char * avDbChannelUpdateValues(char * key, char * value, char ** updateKeys, cha
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM channel WHERE %s = %Q; ", returnKey, key, value);
-			avSqlExec(sql, avCallbackCellValue, &rPtr);
+			avSqlExec(avSqliteDb, sql, avCallbackCellValue, &rPtr);
 			sqlite3_free(sql);
 		}
 		else
@@ -230,7 +230,7 @@ void avDbChannelDelete(char * id)
 {
 	char * sql = sqlite3_mprintf("DELETE FROM channel WHERE %s = %Q; ", AV_KEY_ID, id);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -241,7 +241,7 @@ void avDbChannelDeleteByAuthor(char * author)
 {
 	char * sql = sqlite3_mprintf("DELETE FROM channel WHERE %s = %Q; ", AV_KEY_AUTHOR, author);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -567,7 +567,7 @@ int avDbChannelsListByName(int offset, int n)
 
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s FROM channel ORDER BY %s ASC; ",
 	AV_KEY_ID, AV_KEY_AUTHOR, AV_KEY_DEVELOPER_KEY, AV_KEY_CHANNEL);
-	avSqlExec(sql, avCallbackChannelValues, &filter);
+	avSqlExec(avSqliteDb, sql, avCallbackChannelValues, &filter);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)
@@ -613,7 +613,7 @@ int avDbChannelsListByAuthor(int offset, int n, char * author)
 		sql = sqlite3_mprintf("SELECT %s, %s, %s FROM channel ORDER BY %s ASC; ",
 		AV_KEY_ID, AV_KEY_AUTHOR, AV_KEY_DEVELOPER_KEY, AV_KEY_AUTHOR);
 	}
-	avSqlExec(sql, avCallbackChannelValues, &filter);
+	avSqlExec(avSqliteDb, sql, avCallbackChannelValues, &filter);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)
@@ -769,7 +769,7 @@ PblList * avDbChannelsToListByLocation(int n, char * lat, char * lon, char * aut
 	filter.longitudeFilter = (lon && *lon) ? &longitude : NULL;
 	filter.latitudeFilter = (lat && *lat) ? &latitude : NULL;
 
-	avSqlExec(sql, avCallbackChannelFilteredValues, &filter);
+	avSqlExec(avSqliteDb, sql, avCallbackChannelFilteredValues, &filter);
 	sqlite3_free(sql);
 
 	return list;

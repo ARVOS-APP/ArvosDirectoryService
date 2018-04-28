@@ -82,7 +82,7 @@ extern char * pblCgiCookieTag;
 /* Function declarations                                                     */
 /*****************************************************************************/
 
-extern void avSqlExec(char * statement, int (*callback)(void*, int, char**, char**), void * parameter);
+extern void avSqlExec (sqlite3 * sqlliteDb, char * statement, int (*callback)(void*, int, char**, char**), void * parameter);
 extern int avCallbackCounter(void * ptr, int nColums, char ** values, char ** headers);
 extern int avCallbackCellValue(void * ptr, int nColums, char ** values, char ** headers);
 extern int avCallbackRowValues(void * ptr, int nColums, char ** values, char ** headers);

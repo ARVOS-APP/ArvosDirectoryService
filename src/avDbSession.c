@@ -74,7 +74,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s < %Q; ", AV_KEY_ID, AV_KEY_TIME_LAST_ACCESS,
 			expirationTime);
-	avSqlExec(sql, avCallbackColumnValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackColumnValues, &map);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)
@@ -94,7 +94,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 	{
 		int count = 0;
 		char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s = %Q; ", AV_KEY_COOKIE, AV_KEY_COOKIE, cookie);
-		avSqlExec(sql, avCallbackCounter, &count);
+		avSqlExec(avSqliteDb, sql, avCallbackCounter, &count);
 		sqlite3_free(sql);
 
 		if (count > 0)
@@ -124,7 +124,7 @@ char * avDbSessionInsert(char * authorId, char * name, char * email, char * time
 	AV_KEY_VALUES, cookie, nowTimeStr, authorId, dataStr, AV_KEY_COOKIE, cookie);
 
 	char * id = NULL;
-	avSqlExec(sql, avCallbackCellValue, &id);
+	avSqlExec(avSqliteDb, sql, avCallbackCellValue, &id);
 	if (id == NULL)
 	{
 		pblCgiExitOnError("SQLite exec of '%s' did not create a new record.\n", sql);
@@ -150,7 +150,7 @@ void avDbSessionDelete(char * id)
 {
 	char * sql = sqlite3_mprintf("DELETE FROM session WHERE %s = %Q; ", AV_KEY_ID, id);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -160,7 +160,7 @@ void avDbSessionDelete(char * id)
 void avDbSessionDeleteByAuthor(char * authorId)
 {
 	char * sql = sqlite3_mprintf("DELETE FROM session WHERE %s = %Q; ", AV_KEY_AUTHOR, authorId);
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -170,7 +170,7 @@ void avDbSessionDeleteByAuthor(char * authorId)
 void avDbSessionDeleteByCookie(char * cookie)
 {
 	char * sql = sqlite3_mprintf("DELETE FROM session WHERE %s = %Q; ", AV_KEY_COOKIE, cookie);
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -184,7 +184,7 @@ PblMap * avDbSessionGetBy(char * key, char * value)
 	char * sql = sqlite3_mprintf("SELECT %s, %s, %s, %s, %s FROM session WHERE %s = %Q; ", AV_KEY_ID, AV_KEY_COOKIE,
 	AV_KEY_TIME_LAST_ACCESS, AV_KEY_AUTHOR, AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	if (pblCgiMapIsEmpty(map))
@@ -220,7 +220,7 @@ void avDbSessionUpdateColumn(char * key, char * value, char * updateKey, char * 
 {
 	char * sql = sqlite3_mprintf("UPDATE session SET %s = %Q WHERE %s = %Q; ", updateKey, updateValue, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 }
 
@@ -233,7 +233,7 @@ char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s = %Q; ", AV_KEY_VALUES, key, value);
 
-	avSqlExec(sql, avCallbackRowValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackRowValues, &map);
 	sqlite3_free(sql);
 
 	map = avUpdateData(map, updateKeys, updateValues);
@@ -241,7 +241,7 @@ char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, cha
 
 	sql = sqlite3_mprintf("UPDATE session SET %s = %Q WHERE %s = %Q; ", AV_KEY_VALUES, data, key, value);
 
-	avSqlExec(sql, NULL, NULL);
+	avSqlExec(avSqliteDb, sql, NULL, NULL);
 	sqlite3_free(sql);
 	PBL_FREE(data);
 
@@ -253,7 +253,7 @@ char * avDbSessionUpdateValues(char * key, char * value, char ** updateKeys, cha
 		if (index >= 0)
 		{
 			sql = sqlite3_mprintf("SELECT %s FROM session WHERE %s = %Q; ", returnKey, key, value);
-			avSqlExec(sql, avCallbackCellValue, &rPtr);
+			avSqlExec(avSqliteDb, sql, avCallbackCellValue, &rPtr);
 			sqlite3_free(sql);
 		}
 		else
@@ -284,7 +284,7 @@ int avDbSessionsList(int offset, int n)
 	PblMap * map = pblCgiNewMap();
 
 	char * sql = sqlite3_mprintf("SELECT %s FROM session ORDER BY %s ASC; ", AV_KEY_ID, AV_KEY_TIME_LAST_ACCESS);
-	avSqlExec(sql, avCallbackColumnValues, &map);
+	avSqlExec(avSqliteDb, sql, avCallbackColumnValues, &map);
 	sqlite3_free(sql);
 
 	for (int i = 0; i >= 0; i++)

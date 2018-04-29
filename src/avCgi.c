@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avCgi.c,v $
+ Revision 1.8  2018/04/29 18:42:08  peter
+ More work on service
+
  Revision 1.7  2018/04/26 14:27:36  peter
  Working on the service
 
@@ -37,7 +40,7 @@
  /*
   * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
   */
-char * avCgi_c_id = "$Id: avCgi.c,v 1.7 2018/04/26 14:27:36 peter Exp $";
+char * avCgi_c_id = "$Id: avCgi.c,v 1.8 2018/04/29 18:42:08 peter Exp $";
 
 #ifdef WIN32
 

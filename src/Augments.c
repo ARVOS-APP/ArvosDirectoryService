@@ -23,12 +23,15 @@ For more information on the ARVOS-APP, Tamiko Thiel or Peter Graf,
 please see: http://www.arvos-app.com/.
 
 $Log: Augments.c,v $
+Revision 1.1  2018/04/29 18:42:08  peter
+More work on service
+
 */
 
 /*
 * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
 */
-char * Augments_c_id = "$Id: CreateAuthor.c,v 1.1 2018/04/27 16:21:03 peter Exp $";
+char * Augments_c_id = "$Id: Augments.c,v 1.1 2018/04/29 18:42:08 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

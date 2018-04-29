@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avDbLocation.c,v $
+ Revision 1.5  2018/04/29 18:42:08  peter
+ More work on service
+
  Revision 1.4  2018/03/11 00:34:52  peter
  Integration with pbl cgi code.
 
@@ -37,7 +40,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avDbLocation_c_id = "$Id: avDbLocation.c,v 1.4 2018/03/11 00:34:52 peter Exp $";
+char * avDbLocation_c_id = "$Id: avDbLocation.c,v 1.5 2018/04/29 18:42:08 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

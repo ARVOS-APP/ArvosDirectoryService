@@ -23,6 +23,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: avDirectoryService.c,v $
+ Revision 1.6  2018/04/29 18:42:08  peter
+ More work on service
+
  Revision 1.5  2018/04/26 14:27:36  peter
  Working on the service
 
@@ -43,7 +46,7 @@
 /*
  * Make sure "strings <exe> | grep Id | sort -u" shows the source file versions
  */
-char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.5 2018/04/26 14:27:36 peter Exp $";
+char * avDirectoryService_c_id = "$Id: avDirectoryService.c,v 1.6 2018/04/29 18:42:08 peter Exp $";
 
 #include <stdio.h>
 #include <memory.h>

@@ -25,6 +25,9 @@
  please see: http://www.arvos-app.com/.
 
  $Log: arvosCgi.h,v $
+ Revision 1.6  2018/04/29 18:42:08  peter
+ More work on service
+
  Revision 1.5  2018/04/26 14:27:36  peter
  Working on the service
 
